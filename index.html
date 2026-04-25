@@ -301,6 +301,21 @@ textarea#chat-input {
         if(uid) { navigator.clipboard.writeText(uid); alert("UID COPIED!"); }
     };
 
+    // ポップアップを開く動作（背景スクロール防止版）
+document.getElementById('open-popup-btn').onclick = (e) => {
+    if (e) e.preventDefault(); // ブラウザのデフォルト動作（スクロール）を止める
+    
+    document.getElementById('input-popup').style.display = 'flex';
+    
+    // 入力欄にカーソルを合わせる（画面を動かさない設定）
+    const input = document.getElementById('chat-input');
+    if (input) {
+        input.focus({
+            preventScroll: true
+        });
+    }
+};
+
     const chatInput = document.getElementById('chat-input');
     const charDisplay = document.getElementById('current-char');
     chatInput.addEventListener('input', () => {
@@ -308,11 +323,6 @@ textarea#chat-input {
         charDisplay.innerText = len;
         charDisplay.style.color = len >= 130 ? "#f87171" : "#666";
     });
-
-    document.getElementById('open-popup-btn').onclick = () => {
-        document.getElementById('input-popup').style.display = 'flex';
-        document.getElementById('chat-input').focus();
-    };
 
     window.closePopup = () => {
         document.getElementById('input-popup').style.display = 'none';
