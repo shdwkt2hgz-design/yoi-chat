@@ -41,12 +41,12 @@ input {
     -webkit-appearance: none;
 }
 
-/* 3. 入力エリアのパディング調整（キーボード上部に余裕を持たせる） */
+/* --- 入力エリア全体を「発言パネル」風にする --- */
 .input-area {
-    padding: 10px 15px calc(env(safe-area-inset-bottom) + 10px);
-    background: rgba(2, 6, 23, 0.9); 
-    border-top: 1px solid rgba(56, 189, 248, 0.2);
-    /* キーボードが出た時に潰れないようにする */
+    padding: 15px; /* 周囲に少し余白 */
+    background: rgba(2, 6, 23, 0.8); /* 少し透かしてYouTubeを背後に感じる */
+    backdrop-filter: blur(4px);
+    border-top: 1px solid rgba(56, 189, 248, 0.3);
     flex-shrink: 0;
 }
 
@@ -101,48 +101,57 @@ iframe {
             padding: 8px 12px; margin-bottom: 10px; backdrop-filter: blur(4px);
         }
         
+/* --- 白いポップアップ（宵としての発言欄）風のボックス --- */
 .input-box {
-    position: relative; /* これを追加 */
+    position: relative;
     display: flex; 
-    flex-direction: column; /* rowからcolumnに変更 */
-    gap: 10px; 
-    background: rgba(56, 189, 248, 0.1);
-    border: 1px solid var(--accent-cyan); 
-    border-radius: 4px; 
-    padding: 12px; /* 少し広げる */
+    flex-direction: column;
+    gap: 12px; 
+    background: #ffffff; /* 宵さんが仰っていた「白いポップアップ」風 */
+    border-radius: 8px; /* 角を少し丸く */
+    padding: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* 浮かび上がらせる影 */
 }
 
-/* ついでにその下の input も少し調整 */
+/* --- 白いボックスの中の文字入力 --- */
 input#chat-input { 
     width: 100%;
-    background: none; 
-    border: none; 
-    color: #fff; 
-    font-size: 16px; /* 16px固定 */
-    outline: none; 
+    background: #f1f5f9; /* 入力部分は少しグレー */
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    color: #020617; /* 文字は暗くして読みやすく */
+    font-size: 16px;
+    padding: 10px;
+    outline: none;
 }
 
-/* カウンターのスタイルを新規追加 */
+/* カウンターの色を白背景用に調整 */
 .char-counter {
     position: absolute;
-    top: 8px;
+    top: 5px;
     right: 12px;
     font-size: 10px;
-    color: var(--accent-cyan);
+    color: #64748b;
     font-family: 'Share Tech Mono', sans-serif;
 }
 
-/* SENDボタンを右下に固定 */
+/* SENDボタンをさらに管理画面っぽく */
 #send-btn {
     align-self: flex-end;
-    background: var(--accent-cyan);
-    color: var(--bg-deep);
+    background: #0ea5e9; /* 鮮やかな青 */
+    color: #ffffff;
     border: none;
-    padding: 6px 20px;
-    border-radius: 2px;
+    padding: 8px 24px;
+    border-radius: 4px;
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+#send-btn:disabled {
+    background: #94a3b8;
+    opacity: 0.6;
 }
 
         #lock-overlay { font-size: 11px; color: #f87171; text-align: center; margin-top: 5px; }
