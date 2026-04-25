@@ -57,17 +57,17 @@
             align-items: center;
         }
 
-/* 2. 入力ポップアップ：でかすぎるのを解消 */
+/* ポップアップの中身：さらにスリムに */
 .popup-content {
     background: #fff;
-    width: 80%;       /* 画面の8割くらいに抑える */
-    max-width: 320px; /* PCで見てもスマホで見ても「窓」っぽいサイズ */
-    padding: 20px;
-    border-radius: 16px; /* 角をもう少し丸くしてモダンに */
+    width: 75%;       /* 横幅をさらに絞る */
+    max-width: 280px; /* 小さめのスマホでも収まりが良いサイズ */
+    padding: 10px 15px 15px; /* 上の余白を最小限に */
+    border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px; /* 要素の間隔を狭く */
 }
 
         .popup-header {
@@ -79,21 +79,21 @@
             font-weight: bold;
         }
 
-/* 3. 入力欄：高さを抑えてキーボードに負けないように */
+/* 入力欄：1行〜2行程度に見える低めの高さ */
 textarea#chat-input {
     width: 100%;
-    height: 60px; /* 以前よりさらに少し低くしてスッキリさせました */
-    border: 1px solid #ddd;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 8px;
+    height: 50px; /* 60pxから50pxへ。これで圧迫感が消えます */
+    border: 1px solid #eee;
+    padding: 8px;
+    font-size: 14px; /* 文字サイズも少し下げてコンパクトに */
+    border-radius: 6px;
     resize: none;
     outline: none;
-    box-sizing: border-box; /* 枠線が内側に含まれるように */
-    color: #000;
-    background: #f9f9f9;
+    box-sizing: border-box;
+    color: #333;
+    background: #fdfdfd;
 }
-
+        
         #fixed-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; background-size: cover; background-position: center;
@@ -142,11 +142,17 @@ textarea#chat-input {
             font-size: 10px; color: #666;
         }
 
-        #send-btn {
-            width: 100%; margin-top: 15px; 
-            background: var(--accent-cyan); color: var(--bg-deep); 
-            border: none; padding: 12px; border-radius: 4px; font-weight: bold;
-        }
+/* 送信ボタンも少しスリムに */
+#send-btn {
+    width: 100%;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+}
 
         #lock-overlay { 
             position: fixed; bottom: 60px; left: 0; width: 100%;
@@ -191,14 +197,15 @@ textarea#chat-input {
 
 <div id="input-popup">
     <div class="popup-content">
-        <div class="popup-header">
-            <span>宵としての発言</span>
-            <button onclick="closePopup()" style="background:none; border:none; font-size:24px; color:#333;">&times;</button>
+        <div style="text-align: right;">
+            <button onclick="closePopup()" style="background:none; border:none; font-size:24px; color:#999; cursor:pointer;">&times;</button>
         </div>
+        
         <div style="position:relative;">
             <textarea id="chat-input" placeholder="メッセージを入力..." maxlength="140"></textarea>
             <div class="char-counter"><span id="current-char">0</span>/140</div>
         </div>
+        
         <button id="send-btn">SEND</button>
     </div>
 </div>
