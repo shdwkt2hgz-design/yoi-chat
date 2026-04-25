@@ -68,13 +68,15 @@ input {
 
 .video-container { 
     flex-shrink: 0 !important;
-    width: 100% !important; /* 横幅を100%に強制固定 */
+    width: 100% !important;
     aspect-ratio: 16 / 9; 
     background: #000;
     position: relative;
     z-index: 10;
-    /* もし縦が縮もうとしたら横を維持するように設定 */
-    object-fit: contain; 
+    object-fit: contain;
+    
+    /* ↓↓↓ この一行を追加！ ↓↓↓ */
+    max-height: 50dvh; 
 }
 
 /* YouTube本体（中身）のサイズを枠に合わせる設定 */
