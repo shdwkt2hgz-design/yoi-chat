@@ -45,29 +45,38 @@
     border-top: 1px solid rgba(56, 189, 248, 0.2);
 }
 
-        /* 2. 入力用のポップアップ */
-        #input-popup {
-            display: none; 
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
+/* ポップアップの外枠：位置を上寄りに固定 */
+#input-popup {
+    display: none; 
+    position: fixed;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    
+    display: flex;
+    justify-content: center;
+    /* 中央ではなく、少し上（YouTube画面のあたり）に配置 */
+    align-items: flex-start; 
+    padding-top: 100px; /* ここで「浮く高さ」を調整。100px〜150pxが理想的です */
+    
+    touch-action: none;
+    overscroll-behavior: contain;
+}
 
-/* ポップアップの中身：さらにスリムに */
+/* ポップアップの中身：さらにスッキリ */
 .popup-content {
     background: #fff;
-    width: 75%;       /* 横幅をさらに絞る */
-    max-width: 280px; /* 小さめのスマホでも収まりが良いサイズ */
-    padding: 10px 15px 15px; /* 上の余白を最小限に */
+    width: 85%;       
+    max-width: 300px; 
+    padding: 12px;    /* 余白を最小限にしてコンパクトに */
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     display: flex;
     flex-direction: column;
-    gap: 8px; /* 要素の間隔を狭く */
+    gap: 8px;
 }
 
         .popup-header {
