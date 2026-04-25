@@ -47,7 +47,7 @@
 
 /* ポップアップの外枠：位置を上寄りに固定 */
 #input-popup {
-    display: none; 
+    display: none !important; 
     position: fixed;
     top: 0; 
     left: 0;
@@ -199,7 +199,7 @@ textarea#chat-input {
 <div id="lock-overlay">認証を完了してください</div>
 
 <div class="input-area">
-<button id="open-popup-btn" disabled style="background: var(--accent-cyan); color: var(--bg-deep); border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; opacity: 0.5;">
+<button id="open-popup-btn" disabled style="opacity: 0.5;">
     OFFLINE
 </button>
 </div>
@@ -363,6 +363,8 @@ document.getElementById('open-popup-btn').onclick = (e) => {
     }
     updateBG();
     setInterval(updateBG, 60000);
+    // ページ読み込み完了時に確実に閉じておく
+window.closePopup();
 </script>
 </body>
 </html>
