@@ -43,16 +43,13 @@ input {
 
 /* 3. 入力エリアのパディング調整（キーボード上部に余裕を持たせる） */
 .input-area {
-    position: fixed; /* 画面下部に固定 */
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    /* 宵さんの理想：後ろのYouTubeを透かす設定 */
-    background: rgba(2, 6, 23, 0.7); 
-    backdrop-filter: blur(8px); /* 背後をぼかして視認性アップ */
-    padding: 10px 15px calc(env(safe-area-inset-bottom) + 5px);
-    z-index: 1000;
+    padding: 10px 15px calc(env(safe-area-inset-bottom) + 10px);
+    background: rgba(2, 6, 23, 0.9); 
+    border-top: 1px solid rgba(56, 189, 248, 0.2);
+    /* キーボードが出た時に潰れないようにする */
+    flex-shrink: 0;
 }
+
 
         #fixed-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -105,15 +102,14 @@ iframe {
         }
         
 .input-box {
-    position: relative;
-    display: flex;
-    flex-direction: row; /* 横並びに強制 */
-    align-items: center;
-    gap: 8px;
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid var(--accent-cyan);
-    border-radius: 20px; /* 管理ツール風の丸み */
-    padding: 5px 12px;
+    position: relative; /* これを追加 */
+    display: flex; 
+    flex-direction: column; /* rowからcolumnに変更 */
+    gap: 10px; 
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid var(--accent-cyan); 
+    border-radius: 4px; 
+    padding: 12px; /* 少し広げる */
 }
 
 /* ついでにその下の input も少し調整 */
@@ -122,16 +118,15 @@ input#chat-input {
     background: none; 
     border: none; 
     color: #fff; 
-    font-size: 16px; /* ズーム防止 */
+    font-size: 16px; /* 16px固定 */
     outline: none; 
-    padding: 4px 0;
 }
 
 /* カウンターのスタイルを新規追加 */
 .char-counter {
     position: absolute;
-    top: -18px; /* 入力ボックスの少し上に浮かす */
-    right: 15px;
+    top: 8px;
+    right: 12px;
     font-size: 10px;
     color: var(--accent-cyan);
     font-family: 'Share Tech Mono', sans-serif;
@@ -139,16 +134,15 @@ input#chat-input {
 
 /* SENDボタンを右下に固定 */
 #send-btn {
-    align-self: center; /* 中央寄せ */
+    align-self: flex-end;
     background: var(--accent-cyan);
     color: var(--bg-deep);
     border: none;
-    padding: 4px 12px;
-    border-radius: 15px;
-    font-size: 11px;
+    padding: 6px 20px;
+    border-radius: 2px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
-    flex-shrink: 0; /* ボタンが潰れないように固定 */
 }
 
         #lock-overlay { font-size: 11px; color: #f87171; text-align: center; margin-top: 5px; }
@@ -188,8 +182,7 @@ input#chat-input {
     <div class="input-box">
         <div class="char-counter"><span id="current-char">0</span>/140</div>
         
-        <input type="text" id="chat-input" placeholder="LOGIN REQUIRED..." maxlength="140" autocomplete="off" autocapitalize="off" spellcheck="false" disabled>
-        
+        <input type="text" id="chat-input" placeholder="LOGIN REQUIRED..." maxlength="140" disabled>
         <button id="send-btn" disabled>SEND</button>
     </div>
     <div id="lock-overlay">認証を完了してください</div>
