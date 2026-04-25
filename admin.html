@@ -17,71 +17,73 @@
 
         body {
             margin: 0; background: var(--bg-deep); color: var(--text-main);
-            font-family: 'Share Tech Mono', sans-serif; display: flex; flex-direction: column; height: 100dvh;
+            font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif; 
+            display: flex; flex-direction: column; height: 100dvh; overflow: hidden;
         }
 
-        /* 1. 管理ヘッダー */
+        /* ログインオーバーレイ */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-deep); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
         header {
             padding: 10px 20px; border-bottom: 2px solid var(--accent-cyan);
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(56, 189, 248, 0.1);
         }
 
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-        .live-on { background: var(--accent-cyan); color: var(--bg-deep); font-weight: bold; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .live-on { background: var(--accent-red); color: white; }
         .live-off { background: #334155; color: #94a3b8; }
 
-        /* 2. コントロールパネル */
-        .controls { padding: 15px; display: flex; gap: 10px; background: #0f172a; }
+        .controls { padding: 15px; display: flex; gap: 10px; background: #0f172a; border-bottom: 1px solid #334155; }
         button { 
             padding: 10px; cursor: pointer; border: 1px solid var(--accent-cyan); 
             background: none; color: var(--accent-cyan); font-family: 'Share Tech Mono';
+            transition: 0.2s;
         }
-        button.active { background: var(--accent-cyan); color: var(--bg-deep); }
-
-        /* 3. 全ユーザー監視チャット */
+        button:hover { background: rgba(56, 189, 248, 0.1); }
+        
         #admin-chat-flow {
             flex: 1; overflow-y: auto; padding: 15px;
             display: flex; flex-direction: column;
         }
 
         .msg-box {
-            border: 1px solid rgba(255,255,255,0.1); padding: 8px; margin-bottom: 8px;
-            position: relative; transition: 0.3s;
+            border: 1px solid rgba(56, 189, 248, 0.2); padding: 10px; margin-bottom: 10px;
+            background: rgba(56, 189, 248, 0.05);
         }
-        .msg-box:hover { border-color: var(--accent-cyan); }
-        .msg-info { font-size: 10px; color: var(--accent-cyan); margin-bottom: 4px; display: flex; justify-content: space-between; }
-        .msg-text { font-size: 14px; word-break: break-all; }
-
-        /* 操作ボタン */
-        .msg-actions { margin-top: 8px; display: flex; gap: 5px; }
-        .action-btn { font-size: 9px; padding: 2px 5px; border: 1px solid #444; color: #888; cursor: pointer; }
-        .action-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
-        .ban-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
-
+        .msg-info { font-size: 10px; color: var(--accent-cyan); margin-bottom: 5px; }
+        .msg-text { font-size: 14px; color: #fff; line-height: 1.5; }
     </style>
 </head>
 <body>
 
+<div id="login-overlay">
+    <h2 style="color:var(--accent-cyan);">ADMIN AUTHENTICATION</h2>
+    <button id="login-btn" style="padding: 15px 40px; font-size: 18px;">Google LOGIN</button>
+</div>
+
 <header>
     <div>ADMIN HUD <span id="live-status-badge" class="status-badge live-off">STANDBY</span></div>
-    <div id="admin-uid" style="font-size: 10px; opacity: 0.5;">AUTH CHECKING...</div>
+    <div id="admin-uid" style="font-size: 10px; opacity: 0.5;">UID: FETCHING...</div>
 </header>
 
 <div class="controls">
-    <button id="toggle-live-btn">配信開始 (チャット解禁)</button>
-    <button onclick="clearAllLogs()" style="border-color: var(--accent-red); color: var(--accent-red);">全ログ削除 (配信終了時)</button>
+    <button id="toggle-live-btn" onclick="toggleLive()">配信開始 (チャット解禁)</button>
+    <button onclick="sendAdminMsg()">宵として発言</button>
+    <button onclick="clearAllLogs()" style="border-color: var(--accent-red); color: var(--accent-red); margin-left: auto;">全ログ削除</button>
 </div>
 
-<div id="admin-chat-flow">
-    </div>
+<div id="admin-chat-flow"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
     import { getDatabase, ref, set, onValue, push, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-    // 【重要】チャットページと同じ「新プロジェクト」のConfigに差し替え
     const firebaseConfig = {
         apiKey: "AIzaSyAUmWZ9Itw_z6Dh-deOKmBQ8rLH9I2TAGY",
         authDomain: "yoi-vip-chat.firebaseapp.com",
@@ -99,62 +101,59 @@
 
     let currentUser = null;
 
-    // 認証チェック
     onAuthStateChanged(auth, (user) => {
-        if (user && user.uid === "hdFzekIG1JSiNjbEcBdy2z3rXPx1") { // 宵さんのUID
+        const overlay = document.getElementById('login-overlay');
+        const uidDisplay = document.getElementById('admin-uid');
+
+        if (user && user.uid === "hdFzekIG1JSiNjbEcBdy2z3rXPx1") {
             currentUser = user;
-            document.getElementById('admin-panel').style.display = 'block';
-            document.getElementById('login-overlay').style.display = 'none';
+            overlay.style.display = 'none';
+            uidDisplay.innerText = `ADMIN: ${user.uid}`;
             initAdmin();
         } else {
-            document.getElementById('login-overlay').style.display = 'flex';
+            overlay.style.display = 'flex';
+            if(user) alert("管理者権限がありません");
         }
     });
 
     function initAdmin() {
-        // 1. 配信スイッチの同期
-        const liveRef = ref(db, 'settings/isLive');
-        onValue(liveRef, (snap) => {
+        // 1. 配信ステータス監視
+        onValue(ref(db, 'settings/isLive'), (snap) => {
             const isLive = snap.val();
-            const btn = document.getElementById('live-toggle-btn');
-            btn.innerText = isLive ? "LIVE NOW (ON)" : "OFFLINE (OFF)";
-            btn.style.background = isLive ? "#ef4444" : "#1e293b";
+            const btn = document.getElementById('toggle-live-btn');
+            const badge = document.getElementById('live-status-badge');
+            
+            btn.innerText = isLive ? "配信終了 (ロック)" : "配信開始 (解禁)";
+            badge.innerText = isLive ? "BROADCASTING" : "STANDBY";
+            badge.className = `status-badge ${isLive ? 'live-on' : 'live-off'}`;
         });
 
-        // 2. 全チャットの監視（管理者のみ全部見える）
+        // 2. 全チャット監視
         onValue(ref(db, 'vip_chats'), (snap) => {
-            const list = document.getElementById('admin-chat-list');
-            list.innerHTML = "";
+            const container = document.getElementById('admin-chat-flow');
+            container.innerHTML = "";
             snap.forEach((child) => {
                 const msg = child.val();
                 const div = document.createElement('div');
-                div.className = 'admin-msg';
+                div.className = 'msg-box';
                 div.innerHTML = `
-                    <small>${msg.uid}</small>
-                    <p>${msg.text}</p>
+                    <div class="msg-info">UID: ${msg.uid}</div>
+                    <div class="msg-text">${msg.text}</div>
                 `;
-                list.appendChild(div);
+                container.prepend(div);
             });
         });
     }
 
-    // 配信スイッチ切り替え
+    // グローバル関数（ボタン用）
     window.toggleLive = () => {
-        const btn = document.getElementById('live-toggle-btn');
-        const nextState = btn.innerText.includes("OFFLINE");
-        set(ref(db, 'settings/isLive'), nextState);
+        const badge = document.getElementById('live-status-badge');
+        const isLiveNow = badge.innerText === "BROADCASTING";
+        set(ref(db, 'settings/isLive'), !isLiveNow);
     };
 
-    // チャット全削除
-    window.clearChats = () => {
-        if(confirm("全てのチャット履歴を消去しますか？")) {
-            remove(ref(db, 'vip_chats'));
-        }
-    };
-
-    // 宵さんとしてメッセージを送る
     window.sendAdminMsg = () => {
-        const text = prompt("宵としてメッセージを送信:");
+        const text = prompt("宵として送信するメッセージ:");
         if(!text) return;
         push(ref(db, 'vip_chats'), {
             uid: "RYUSEI_YOI",
@@ -162,6 +161,14 @@
             isAdmin: true,
             timestamp: serverTimestamp()
         });
+    };
+
+    window.clearAllLogs = () => {
+        if(confirm("全ログを削除します。よろしいですか？")) {
+            remove(ref(db, 'vip_chats'))
+                .then(() => alert("削除しました"))
+                .catch(e => alert("エラー: " + e.message));
+        }
     };
 
     document.getElementById('login-btn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
