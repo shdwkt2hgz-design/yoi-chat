@@ -22,11 +22,9 @@ body {
     background-color: var(--bg-deep);
     color: var(--text-main);
     font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
-    /* 100dvhを使ってキーボードを考慮した高さにする */
     height: 100dvh; 
     display: flex; flex-direction: column; 
     overflow: hidden;
-    /* iPhoneでの勝手なズームを抑制するおまじない */
     touch-action: manipulation;
 }
 
@@ -68,8 +66,12 @@ input {
         .uid-area { font-size: 10px; opacity: 0.8; cursor: pointer; }
         .counter { font-size: 12px; color: var(--accent-cyan); text-align: right; }
 
-        .video-container { width: 100%; aspect-ratio: 16 / 9; background: #000; }
-        iframe { width: 100%; height: 100%; border: none; }
+.video-container { 
+    flex-shrink: 0; /* これを追加！ */
+    width: 100%; 
+    aspect-ratio: 16 / 9; 
+    background: #000; 
+}
 
         #chat-flow {
             flex: 1; overflow-y: auto; padding: 15px;
@@ -82,16 +84,50 @@ input {
             border: 1px solid rgba(56, 189, 248, 0.2);
             padding: 8px 12px; margin-bottom: 10px; backdrop-filter: blur(4px);
         }
-
-        .input-area {
-            padding: 10px 15px calc(env(safe-area-inset-bottom) + 10px);
-            background: rgba(2, 6, 23, 0.9); border-top: 1px solid rgba(56, 189, 248, 0.2);
-        }
         
-        .input-box {
-            display: flex; gap: 10px; background: rgba(56, 189, 248, 0.1);
-            border: 1px solid var(--accent-cyan); border-radius: 4px; padding: 5px 10px;
-        }
+.input-box {
+    position: relative; /* これを追加 */
+    display: flex; 
+    flex-direction: column; /* rowからcolumnに変更 */
+    gap: 10px; 
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid var(--accent-cyan); 
+    border-radius: 4px; 
+    padding: 12px; /* 少し広げる */
+}
+
+/* ついでにその下の input も少し調整 */
+input#chat-input { 
+    width: 100%;
+    background: none; 
+    border: none; 
+    color: #fff; 
+    font-size: 16px; /* 16px固定 */
+    outline: none; 
+}
+
+/* カウンターのスタイルを新規追加 */
+.char-counter {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 10px;
+    color: var(--accent-cyan);
+    font-family: 'Share Tech Mono', sans-serif;
+}
+
+/* SENDボタンを右下に固定 */
+#send-btn {
+    align-self: flex-end;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    padding: 6px 20px;
+    border-radius: 2px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
         #lock-overlay { font-size: 11px; color: #f87171; text-align: center; margin-top: 5px; }
 
@@ -128,6 +164,8 @@ input {
 
 <div class="input-area">
     <div class="input-box">
+        <div class="char-counter"><span id="current-char">0</span>/140</div>
+        
         <input type="text" id="chat-input" placeholder="LOGIN REQUIRED..." maxlength="140" disabled>
         <button id="send-btn" disabled>SEND</button>
     </div>
@@ -261,6 +299,19 @@ input {
             alert("UID COPIED!");
         }
     };
+    // 文字数カウント機能
+    const chatInput = document.getElementById('chat-input');
+    const charDisplay = document.getElementById('current-char');
+
+    chatInput.addEventListener('input', () => {
+        const len = chatInput.value.length;
+        charDisplay.innerText = len;
+        if (len >= 130) {
+            charDisplay.style.color = "#f87171";
+        } else {
+            charDisplay.style.color = "#38bdf8";
+        }
+    });
 
     function updateBG() {
         const hour = new Date().getHours();
@@ -272,6 +323,7 @@ input {
     }
     updateBG();
     setInterval(updateBG, 60000);
+    
 </script>
 </body>
 </html>
