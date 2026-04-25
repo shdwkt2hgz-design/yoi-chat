@@ -199,9 +199,9 @@ textarea#chat-input {
 <div id="lock-overlay">認証を完了してください</div>
 
 <div class="input-area">
-    <button id="open-popup-btn" style="background: var(--accent-cyan); color: var(--bg-deep); border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold;">
-        SEND MESSAGE
-    </button>
+<button id="open-popup-btn" disabled style="background: var(--accent-cyan); color: var(--bg-deep); border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; opacity: 0.5;">
+    OFFLINE
+</button>
 </div>
 
 <div id="input-popup">
@@ -269,23 +269,26 @@ textarea#chat-input {
         onValue(ref(db, 'presence'), (snap) => {
             document.getElementById('guest-count').innerText = snap.size || 0;
         });
+        
 onValue(ref(db, 'settings/isLive'), (snap) => {
     const isLive = snap.val();
     const openBtn = document.getElementById('open-popup-btn');
     
-    // 配信中じゃない時はボタンを「半透明」にして「クリック不可」にする
-    if (isLive) {
+    if (isLive === true) {
         openBtn.disabled = false;
         openBtn.style.opacity = "1";
         openBtn.innerText = "SEND MESSAGE";
         document.getElementById('lock-overlay').innerText = "";
     } else {
         openBtn.disabled = true;
-        openBtn.style.opacity = "0.5"; // 押せない感を出します
+        openBtn.style.opacity = "0.5";
         openBtn.innerText = "OFFLINE";
         document.getElementById('lock-overlay').innerText = "現在、配信外のためロックされています";
+        // 【重要】もしポップアップが開いていたら強制的に閉じる
+        window.closePopup();
     }
 });
+        
         onValue(ref(db, 'vip_chats'), (snap) => {
             const container = document.getElementById('chat-flow');
             const welcome = document.getElementById('welcome-msg');
@@ -325,11 +328,13 @@ onValue(ref(db, 'settings/isLive'), (snap) => {
 document.getElementById('open-popup-btn').onclick = (e) => {
     if (e) e.preventDefault();
     
-    // 【追加】もしボタンがdisabled（配信外）なら、ここで処理を終了する
-    if (document.getElementById('open-popup-btn').disabled) return;
+    const btn = document.getElementById('open-popup-btn');
+    // ボタンが物理的にdisabled、または文字がOFFLINEなら絶対に開かない
+    if (btn.disabled || btn.innerText === "OFFLINE") {
+        return false;
+    }
 
     document.getElementById('input-popup').style.display = 'flex';
-    
     const input = document.getElementById('chat-input');
     if (input) {
         input.focus({ preventScroll: true });
