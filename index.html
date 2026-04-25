@@ -269,11 +269,23 @@ textarea#chat-input {
         onValue(ref(db, 'presence'), (snap) => {
             document.getElementById('guest-count').innerText = snap.size || 0;
         });
-        onValue(ref(db, 'settings/isLive'), (snap) => {
-            const isLive = snap.val();
-            document.getElementById('open-popup-btn').disabled = !isLive;
-            document.getElementById('lock-overlay').innerText = isLive ? "" : "現在、配信外のためロックされています";
-        });
+onValue(ref(db, 'settings/isLive'), (snap) => {
+    const isLive = snap.val();
+    const openBtn = document.getElementById('open-popup-btn');
+    
+    // 配信中じゃない時はボタンを「半透明」にして「クリック不可」にする
+    if (isLive) {
+        openBtn.disabled = false;
+        openBtn.style.opacity = "1";
+        openBtn.innerText = "SEND MESSAGE";
+        document.getElementById('lock-overlay').innerText = "";
+    } else {
+        openBtn.disabled = true;
+        openBtn.style.opacity = "0.5"; // 押せない感を出します
+        openBtn.innerText = "OFFLINE";
+        document.getElementById('lock-overlay').innerText = "現在、配信外のためロックされています";
+    }
+});
         onValue(ref(db, 'vip_chats'), (snap) => {
             const container = document.getElementById('chat-flow');
             const welcome = document.getElementById('welcome-msg');
@@ -310,18 +322,17 @@ textarea#chat-input {
         if(uid) { navigator.clipboard.writeText(uid); alert("UID COPIED!"); }
     };
 
-    // ポップアップを開く動作（背景スクロール防止版）
 document.getElementById('open-popup-btn').onclick = (e) => {
-    if (e) e.preventDefault(); // ブラウザのデフォルト動作（スクロール）を止める
+    if (e) e.preventDefault();
     
+    // 【追加】もしボタンがdisabled（配信外）なら、ここで処理を終了する
+    if (document.getElementById('open-popup-btn').disabled) return;
+
     document.getElementById('input-popup').style.display = 'flex';
     
-    // 入力欄にカーソルを合わせる（画面を動かさない設定）
     const input = document.getElementById('chat-input');
     if (input) {
-        input.focus({
-            preventScroll: true
-        });
+        input.focus({ preventScroll: true });
     }
 };
 
