@@ -187,13 +187,48 @@
     let currentUser = null;
 
     // 1. 認証とGAS連携
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            document.getElementById('my-uid').innerText = `UID: ${user.uid}`;
-            checkGASPermission(user.uid);
+onAuthStateChanged(auth, async (user) => {
+    const authStatus = document.getElementById('auth-status-msg'); // ID名はHTMLに合わせてね
+    const myUid = document.getElementById('my-uid');
+    
+    if (user) {
+        currentUser = user;
+        myUid.innerText = `UID: ${user.uid}`;
+        
+        // --- STEP 1: まずはFirebaseのWhitelist（宵さん自身）をチェック ---
+        const whitelistRef = ref(db, `whitelist/${user.uid}`);
+        const snapshot = await get(whitelistRef);
+
+        if (snapshot.exists() && snapshot.val() === true) {
+            // 宵さん（または直接登録したVIP）なら即座に突破！
+            console.log("Admin/Whitelist access granted.");
+            document.getElementById('welcome-msg').style.display = 'none'; 
+            startApp(); // チャット機能開始
+            return; // ここで終了
         }
-    });
+
+        // --- STEP 2: 宵さんじゃなければ、GAS（Ci-en連携）に聞きに行く ---
+        authStatus.innerText = "Ci-en連携を確認中...";
+        const GAS_URL = "ここにあなたのGASのURL"; 
+        
+        try {
+            const res = await fetch(`${GAS_URL}?uid=${user.uid}`);
+            const data = await res.json();
+            if (data.allowed) {
+                document.getElementById('welcome-msg').style.display = 'none';
+                startApp();
+            } else {
+                authStatus.innerHTML = `<span style="color:#fbbf24;">未連携です。UIDを宵に送信してください。</span>`;
+            }
+        } catch (e) {
+            // GASがまだない場合はここで止まりますが、宵さん自身はSTEP 1で突破できているはずです
+            authStatus.innerHTML = `<span style="color:#fbbf24;">連携確認エンジン未起動（UIDを宵へ送付）</span>`;
+        }
+    } else {
+        myUid.innerText = "UID: GUEST_MODE";
+    }
+});
+
 
     async function checkGASPermission(uid) {
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwS9BgPJCLvLMHZ-w_JM7yMViLvoZabxqTWOWVjKnOuBK6h1E-J_I4FDT0lpD1yBY3K/exec";
