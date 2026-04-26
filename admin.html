@@ -99,6 +99,19 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+        // --- 1. 伏せ字の準備 ---
+const maskWords = ["NGワード1", "住所", "本名"]; // 配信に出したくないワードをここに入れる
+
+function applyMask(text) {
+    if (!text) return "";
+    let masked = text;
+    maskWords.forEach(word => {
+        const reg = new RegExp(word, 'g');
+        masked = masked.replace(reg, '＊＊＊');
+    });
+    return masked;
+}
+
     let currentUser = null;
 
     onAuthStateChanged(auth, (user) => {
@@ -128,21 +141,29 @@
             badge.className = `status-badge ${isLive ? 'live-on' : 'live-off'}`;
         });
 
-        // 2. 全チャット監視
-        onValue(ref(db, 'vip_chats'), (snap) => {
-            const container = document.getElementById('admin-chat-flow');
-            container.innerHTML = "";
-            snap.forEach((child) => {
-                const msg = child.val();
-                const div = document.createElement('div');
-                div.className = 'msg-box';
-                div.innerHTML = `
-                    <div class="msg-info">UID: ${msg.uid}</div>
-                    <div class="msg-text">${msg.text}</div>
-                `;
-                container.prepend(div);
-            });
-        });
+// 2. 全チャット監視 (ここを書き換え)
+onValue(ref(db, 'vip_chats'), (snap) => {
+    const container = document.getElementById('admin-chat-flow');
+    container.innerHTML = "";
+    snap.forEach((child) => {
+        const msg = child.val();
+        const msgId = child.key; // 後のPUSH機能で使うので取得しておく
+        
+        const masked = applyMask(msg.text); // 伏せ字を適用
+
+        const div = document.createElement('div');
+        div.className = 'msg-box';
+        div.innerHTML = `
+            <div class="msg-info">UID: ${msg.uid}</div>
+            <div class="msg-text">${masked}</div>
+            ${masked !== msg.text ? `<div style="font-size:10px; color:#64748b; margin-top:5px; border-top:1px solid #334155;">Original: ${msg.text}</div>` : ''}
+            <div style="margin-top:10px;">
+                <button onclick="pushToOverlay('${msgId}', '${msg.text.replace(/'/g, "\\'")}')" style="font-size:10px; padding:2px 8px;">PUSH (配信画面へ)</button>
+            </div>
+        `;
+        container.prepend(div);
+    });
+});
     }
 
     // グローバル関数（ボタン用）
@@ -163,6 +184,18 @@
         });
     };
 
+    // --- 3. 配信画面へ射出する関数 ---
+window.pushToOverlay = (id, text) => {
+    // 配信画面へ送る際も、念のため伏せ字を適用して送る
+    set(ref(db, 'settings/pickup'), {
+        msgId: id,
+        text: applyMask(text),
+        timestamp: serverTimestamp()
+    }).then(() => {
+        console.log("PICKUP SUCCESS");
+    });
+};
+
     window.clearAllLogs = () => {
         if(confirm("全ログを削除します。よろしいですか？")) {
             remove(ref(db, 'vip_chats'))
@@ -172,6 +205,7 @@
     };
 
     document.getElementById('login-btn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+    
 </script>
 </body>
 </html>
