@@ -244,7 +244,7 @@ textarea#chat-input {
         align-items: flex-start; 
         /* YouTubeの下あたりから表示させる。
            100pxだとYouTubeに被る場合は 150px〜200px 等で調整してください */
-        padding-top: 180px; 
+        padding-top: 200px; 
         padding-bottom: 0;
     }
 
@@ -252,7 +252,7 @@ textarea#chat-input {
         /* 横幅を画面いっぱいに広げ、高さも大きくする */
         width: 80%; 
         max-width: 600px; /* PCでの操作性を考えて少し上限を設ける */
-        height: 60dvh;    /* 画面の高さの60%を使う */
+        height: 40dvh;    /* 画面の高さの60%を使う */
         background: var(--bg-deep);
         border: 2px solid var(--accent-cyan);
         border-radius: 15px;
@@ -261,7 +261,7 @@ textarea#chat-input {
     textarea#chat-input {
         /* 入力欄を縦に大きく広げる */
         flex: 1;
-        height: 40dvh;
+        height: auto;
         font-size: 16px;
     }
     
