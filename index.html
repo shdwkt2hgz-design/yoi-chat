@@ -47,7 +47,7 @@
 
 /* ポップアップの外枠：位置を上寄りに固定 */
 #input-popup {
-    display: none !important; 
+    display: none; 
     position: fixed;
     top: 0; 
     left: 0;
@@ -199,9 +199,10 @@ textarea#chat-input {
 <div id="lock-overlay">認証を完了してください</div>
 
 <div class="input-area">
-<button id="open-popup-btn" disabled style="opacity: 0.5;">
-    OFFLINE
-</button>
+    <button id="open-popup-btn" disabled 
+        style="background: var(--accent-cyan); color: var(--bg-deep); border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; opacity: 0.5; transition: all 0.3s;">
+        OFFLINE
+    </button>
 </div>
 
 <div id="input-popup">
@@ -299,6 +300,17 @@ onValue(ref(db, 'settings/isLive'), (snap) => {
                 if (msg.uid === currentUser.uid || msg.isAdmin) {
                     const div = document.createElement('div');
                     div.className = 'msg-window';
+                    // NGワードのリスト（後で増やせます）
+const maskWords = ["NGワード1", "住所", "本名"]; 
+
+function maskText(text) {
+    let masked = text;
+    maskWords.forEach(word => {
+        const reg = new RegExp(word, 'g');
+        masked = masked.replace(reg, '＊＊＊');
+    });
+    return masked;
+}
                     div.innerHTML = `<div style="font-size:9px; opacity:0.5;">${msg.isAdmin ? 'RYUSEI YOI' : 'UID: ' + msg.uid}</div><div style="font-size:13px;">${msg.text}</div>`;
                     container.appendChild(div);
                 }
