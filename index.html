@@ -184,7 +184,6 @@ textarea#chat-input {
     padding-top: 0; 
     border-top: 2px solid var(--accent-cyan);
     backdrop-filter: blur(10px);
-    z-index: 2000; /* 動画より手前に来るように */
 }
 
     /* 2. ポップアップの中身を「横長の入力バー」に変える */
@@ -236,7 +235,17 @@ textarea#chat-input {
     #chat-flow { 
     padding-bottom: 100px; 
 }
+}
     
+/* 「タッチパネル（スマホ）ではない」かつ「画面が狭い（PCブラウザの縮小）」時だけ適用 */
+@media (hover: hover) and (pointer: fine) and (max-width: 767px) {
+    #input-popup {
+        /* 上に固定するのをやめて、下に寄せる */
+        align-items: flex-end; 
+        /* YouTube(上半分)を避けて、下から120pxの位置に浮かせる */
+        padding-top: 0;
+        padding-bottom: 120px;
+    }
 }
         
     </style>
@@ -281,7 +290,7 @@ textarea#chat-input {
             <button onclick="closePopup()" style="background:none; border:none; font-size:24px; color:#999; cursor:pointer;">&times;</button>
         </div>
         
-        <div style="position:relative;">
+        <div style="position:relative; flex: 1;">
 <textarea id="chat-input" placeholder="メッセージを入力..." maxlength="140" autocomplete="off"></textarea>
             <div class="char-counter"><span id="current-char">0</span>/140</div>
         </div>
