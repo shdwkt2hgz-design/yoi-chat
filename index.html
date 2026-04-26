@@ -237,14 +237,36 @@ textarea#chat-input {
 }
 }
     
-/* 「タッチパネル（スマホ）ではない」かつ「画面が狭い（PCブラウザの縮小）」時だけ適用 */
+/* 「PCブラウザを細くした時」専用の設定（スマホ実機には影響しません） */
 @media (hover: hover) and (pointer: fine) and (max-width: 767px) {
     #input-popup {
-        /* 上に固定するのをやめて、下に寄せる */
-        align-items: flex-end; 
-        /* YouTube(上半分)を避けて、下から120pxの位置に浮かせる */
-        padding-top: 0;
-        padding-bottom: 120px;
+        /* 上に固定するのをやめて、位置を調整 */
+        align-items: flex-start; 
+        /* YouTubeの下あたりから表示させる。
+           100pxだとYouTubeに被る場合は 150px〜200px 等で調整してください */
+        padding-top: 120px; 
+        padding-bottom: 0;
+    }
+
+    .popup-content {
+        /* 横幅を画面いっぱいに広げ、高さも大きくする */
+        width: 95%; 
+        max-width: 600px; /* PCでの操作性を考えて少し上限を設ける */
+        height: 60dvh;    /* 画面の高さの60%を使う */
+        background: var(--bg-deep);
+        border: 2px solid var(--accent-cyan);
+        border-radius: 15px;
+    }
+
+    textarea#chat-input {
+        /* 入力欄を縦に大きく広げる */
+        flex: 1;
+        height: auto;
+        font-size: 16px;
+    }
+    
+    #send-btn {
+        height: 50px; /* 送信ボタンも押しやすく */
     }
 }
         
