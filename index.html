@@ -174,27 +174,30 @@ textarea#chat-input {
         /* PC向けのスタイル：画面幅が768px以上の場合 */
 @media (min-width: 768px) {
     /* 1. ポップアップを「常に表示」状態にする */
-    #input-popup {
-        display: flex !important; /* JSの制御を無視して表示 */
-        position: static; /* 浮かせるのをやめる */
-        width: 100%;
-        height: auto;
-        background: none;
-        padding-top: 0;
-    }
+#input-popup {
+    display: flex !important; 
+    position: fixed; 
+    top: auto; 
+    bottom: 0;
+    height: auto; 
+    background: rgba(2, 6, 23, 0.95);
+    padding-top: 0; 
+    border-top: 2px solid var(--accent-cyan);
+    backdrop-filter: blur(10px);
+}
 
     /* 2. ポップアップの中身を「横長の入力バー」に変える */
-    .popup-content {
-        width: 100%;
-        max-width: none;
-        background: rgba(2, 6, 23, 0.9);
-        border-top: 1px solid var(--accent-cyan);
-        border-radius: 0;
-        flex-direction: row; /* 横並びに */
-        align-items: center;
-        padding: 15px 20px;
-        box-shadow: none;
-    }
+.popup-content {
+    width: 100%; 
+    max-width: 1200px; 
+    background: none; 
+    box-shadow: none;
+    flex-direction: row; 
+    align-items: center; 
+    padding: 15px 30px; 
+    gap: 15px;
+    margin: 0 auto;
+}
 
     /* 3. 閉じるボタン(&times;)はPCでは不要なので隠す */
     .popup-content button[onclick="closePopup()"] {
@@ -202,20 +205,37 @@ textarea#chat-input {
     }
 
     /* 4. 入力欄を横に広げる */
-    textarea#chat-input {
-        flex: 1;
-        height: 40px;
-    }
+textarea#chat-input {
+    flex: 1;
+    height: 44px; 
+    width: 100%;
+    margin: 0;
+}
 
     /* 5. スマホ用の「SEND MESSAGE」ボタン（丸いやつ）を隠す */
-    .input-area {
-        display: none;
-    }
+.input-area { display: none !important; }
     
     /* 6. ロック用オーバーレイの位置調整 */
     #lock-overlay {
         bottom: 80px;
     }
+
+    .popup-content > div:nth-child(2) { 
+    flex: 1; 
+    display: flex;
+}
+
+    #send-btn {
+    width: 140px; 
+    height: 44px;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+    #chat-flow { 
+    padding-bottom: 100px; 
+}
+    
 }
         
     </style>
