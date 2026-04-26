@@ -141,22 +141,24 @@ function applyMask(text) {
             badge.className = `status-badge ${isLive ? 'live-on' : 'live-off'}`;
         });
 
-// 2. 全チャット監視 (ここを書き換え)
+// 2. 全チャット監視 (表示順序を入れ替え)
 onValue(ref(db, 'vip_chats'), (snap) => {
     const container = document.getElementById('admin-chat-flow');
     container.innerHTML = "";
     snap.forEach((child) => {
         const msg = child.val();
-        const msgId = child.key; // 後のPUSH機能で使うので取得しておく
+        const msgId = child.key;
         
-        const masked = applyMask(msg.text); // 伏せ字を適用
+        const masked = applyMask(msg.text); // プレビュー用の伏せ字
 
         const div = document.createElement('div');
         div.className = 'msg-box';
         div.innerHTML = `
             <div class="msg-info">UID: ${msg.uid}</div>
-            <div class="msg-text">${masked}</div>
-            ${masked !== msg.text ? `<div style="font-size:10px; color:#64748b; margin-top:5px; border-top:1px solid #334155;">Original: ${msg.text}</div>` : ''}
+            <div class="msg-text">${msg.text}</div>
+            
+            ${masked !== msg.text ? `<div style="font-size:10px; color:#64748b; margin-top:5px; border-top:1px solid #334155; padding-top:5px;">Preview (Masked): ${masked}</div>` : ''}
+            
             <div style="margin-top:10px;">
                 <button onclick="pushToOverlay('${msgId}', '${msg.text.replace(/'/g, "\\'")}')" style="font-size:10px; padding:2px 8px;">PUSH (配信画面へ)</button>
             </div>
