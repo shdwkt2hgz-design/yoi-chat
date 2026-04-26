@@ -307,6 +307,9 @@ textarea#chat-input {
                     container.appendChild(div);
                 }
             });
+            // ★ここを追加：最新のメッセージまでスクロールさせる
+    // flex-direction: column-reverse を使っているので、一番上が「最新」扱いの場合は 0 でOK
+    container.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
 
