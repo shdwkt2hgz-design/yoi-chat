@@ -241,6 +241,30 @@ textarea#chat-input {
     const db = getDatabase(app);
     let currentUser = null;
 
+    // --- ここから伏せ字と射出の準備 ---
+    const maskWords = ["NGワード1", "住所", "本名"]; 
+
+    function maskText(text) {
+        if (!text) return "";
+        let masked = text;
+        maskWords.forEach(word => {
+            const reg = new RegExp(word, 'g');
+            masked = masked.replace(reg, '＊＊＊');
+        });
+        return masked;
+    }
+
+    window.pushToScreen = (id, text) => {
+        set(ref(db, 'settings/pickup'), {
+            msgId: id,
+            text: text,
+            timestamp: serverTimestamp()
+        }).then(() => {
+            console.log("PICKUP SUCCESS:", id);
+        });
+    };
+    // --- ここまで準備 ---
+
     onAuthStateChanged(auth, async (user) => {
         const myUid = document.getElementById('my-uid');
         const loginBtn = document.getElementById('login-trigger-btn');
@@ -271,47 +295,46 @@ textarea#chat-input {
             document.getElementById('guest-count').innerText = snap.size || 0;
         });
         
-onValue(ref(db, 'settings/isLive'), (snap) => {
-    const isLive = snap.val();
-    const openBtn = document.getElementById('open-popup-btn');
-    
-    if (isLive === true) {
-        openBtn.disabled = false;
-        openBtn.style.opacity = "1";
-        openBtn.innerText = "SEND MESSAGE";
-        document.getElementById('lock-overlay').innerText = "";
-    } else {
-        openBtn.disabled = true;
-        openBtn.style.opacity = "0.5";
-        openBtn.innerText = "OFFLINE";
-        document.getElementById('lock-overlay').innerText = "現在、配信外のためロックされています";
-        // 【重要】もしポップアップが開いていたら強制的に閉じる
-        window.closePopup();
-    }
-});
+        onValue(ref(db, 'settings/isLive'), (snap) => {
+            const isLive = snap.val();
+            const openBtn = document.getElementById('open-popup-btn');
+            if (isLive === true) {
+                openBtn.disabled = false;
+                openBtn.style.opacity = "1";
+                openBtn.innerText = "SEND MESSAGE";
+                document.getElementById('lock-overlay').innerText = "";
+            } else {
+                openBtn.disabled = true;
+                openBtn.style.opacity = "0.5";
+                openBtn.innerText = "OFFLINE";
+                document.getElementById('lock-overlay').innerText = "現在、配信外のためロックされています";
+                window.closePopup();
+            }
+        });
         
         onValue(ref(db, 'vip_chats'), (snap) => {
             const container = document.getElementById('chat-flow');
             const welcome = document.getElementById('welcome-msg');
             container.innerHTML = "";
             if(welcome) container.appendChild(welcome);
+
             snap.forEach((child) => {
                 const msg = child.val();
+                const msgId = child.key;
                 if (msg.uid === currentUser.uid || msg.isAdmin) {
                     const div = document.createElement('div');
                     div.className = 'msg-window';
-                    // NGワードのリスト（後で増やせます）
-const maskWords = ["NGワード1", "住所", "本名"]; 
-
-function maskText(text) {
-    let masked = text;
-    maskWords.forEach(word => {
-        const reg = new RegExp(word, 'g');
-        masked = masked.replace(reg, '＊＊＊');
-    });
-    return masked;
-}
-                    div.innerHTML = `<div style="font-size:9px; opacity:0.5;">${msg.isAdmin ? 'RYUSEI YOI' : 'UID: ' + msg.uid}</div><div style="font-size:13px;">${msg.text}</div>`;
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                            <div style="flex:1;">
+                                <div style="font-size:9px; opacity:0.5;">${msg.isAdmin ? 'RYUSEI YOI' : 'UID: ' + msg.uid}</div>
+                                <div style="font-size:13px; word-break:break-all;">${maskText(msg.text)}</div>
+                            </div>
+                            <button onclick="window.pushToScreen('${msgId}', '${msg.text.replace(/'/g, "\\'")}')" 
+                                style="background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); font-size:10px; padding:4px 8px; border-radius:4px; flex-shrink:0; cursor:pointer;">
+                                PUSH
+                            </button>
+                        </div>`;
                     container.appendChild(div);
                 }
             });
@@ -332,26 +355,20 @@ function maskText(text) {
 
     document.getElementById('login-trigger-btn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
     document.getElementById('send-btn').onclick = window.sendMessage;
+    
     window.copyUID = () => {
         const uid = currentUser ? currentUser.uid : "";
         if(uid) { navigator.clipboard.writeText(uid); alert("UID COPIED!"); }
     };
 
-document.getElementById('open-popup-btn').onclick = (e) => {
-    if (e) e.preventDefault();
-    
-    const btn = document.getElementById('open-popup-btn');
-    // ボタンが物理的にdisabled、または文字がOFFLINEなら絶対に開かない
-    if (btn.disabled || btn.innerText === "OFFLINE") {
-        return false;
-    }
-
-    document.getElementById('input-popup').style.display = 'flex';
-    const input = document.getElementById('chat-input');
-    if (input) {
-        input.focus({ preventScroll: true });
-    }
-};
+    document.getElementById('open-popup-btn').onclick = (e) => {
+        if (e) e.preventDefault();
+        const btn = document.getElementById('open-popup-btn');
+        if (btn.disabled || btn.innerText === "OFFLINE") return false;
+        document.getElementById('input-popup').style.display = 'flex';
+        const input = document.getElementById('chat-input');
+        if (input) input.focus({ preventScroll: true });
+    };
 
     const chatInput = document.getElementById('chat-input');
     const charDisplay = document.getElementById('current-char');
@@ -375,8 +392,7 @@ document.getElementById('open-popup-btn').onclick = (e) => {
     }
     updateBG();
     setInterval(updateBG, 60000);
-    // ページ読み込み完了時に確実に閉じておく
-window.closePopup();
+    window.closePopup();
 </script>
 </body>
 </html>
