@@ -170,6 +170,54 @@ textarea#chat-input {
         }
 
         .guide-panel { text-align: center; border: 1px dashed var(--accent-cyan); padding: 20px; margin: 10px 0; }
+
+        /* PC向けのスタイル：画面幅が768px以上の場合 */
+@media (min-width: 768px) {
+    /* 1. ポップアップを「常に表示」状態にする */
+    #input-popup {
+        display: flex !important; /* JSの制御を無視して表示 */
+        position: static; /* 浮かせるのをやめる */
+        width: 100%;
+        height: auto;
+        background: none;
+        padding-top: 0;
+    }
+
+    /* 2. ポップアップの中身を「横長の入力バー」に変える */
+    .popup-content {
+        width: 100%;
+        max-width: none;
+        background: rgba(2, 6, 23, 0.9);
+        border-top: 1px solid var(--accent-cyan);
+        border-radius: 0;
+        flex-direction: row; /* 横並びに */
+        align-items: center;
+        padding: 15px 20px;
+        box-shadow: none;
+    }
+
+    /* 3. 閉じるボタン(&times;)はPCでは不要なので隠す */
+    .popup-content button[onclick="closePopup()"] {
+        display: none;
+    }
+
+    /* 4. 入力欄を横に広げる */
+    textarea#chat-input {
+        flex: 1;
+        height: 40px;
+    }
+
+    /* 5. スマホ用の「SEND MESSAGE」ボタン（丸いやつ）を隠す */
+    .input-area {
+        display: none;
+    }
+    
+    /* 6. ロック用オーバーレイの位置調整 */
+    #lock-overlay {
+        bottom: 80px;
+    }
+}
+        
     </style>
 </head>
 <body>
