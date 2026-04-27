@@ -395,15 +395,19 @@ textarea#chat-input {
             container.innerHTML = "";
             if(welcome) container.appendChild(welcome);
 
-// 【ここを書き換え】
+// 【修正箇所】表示ロジック
 snap.forEach((child) => {
     const msg = child.val();
     if (msg.uid === currentUser.uid || msg.isAdmin) {
         const div = document.createElement('div');
         div.className = 'msg-window';
+        
+        // 自分のメッセージなら「生のtext」、運営（宵さん）なら「filteredText」を表示
+        const displayText = (msg.uid === currentUser.uid) ? msg.text : (msg.filteredText || msg.text);
+
         div.innerHTML = `
             ${msg.isAdmin ? `<div style="font-size:9px; opacity:0.8; color:var(--accent-cyan);">RYUSEI YOI</div>` : ''}
-            <div style="font-size:13px; word-break:break-all;">${msg.filteredText || msg.text}</div>
+            <div style="font-size:13px; word-break:break-all;">${displayText}</div>
         `;
         container.prepend(div); 
     }
