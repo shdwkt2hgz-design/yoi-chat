@@ -341,6 +341,7 @@ textarea#chat-input {
     const auth = getAuth(app);
     const db = getDatabase(app);
     let currentUser = null;
+let currentNgWords = []; // 追加：DBから読み込んだNGワードを入れる空の配列
 
     onAuthStateChanged(auth, async (user) => {
         const myUid = document.getElementById('my-uid');
@@ -367,58 +368,63 @@ textarea#chat-input {
         authStatus.innerHTML = `<div style="padding:10px; border:1px dashed var(--accent-gold);"><p style="color:var(--accent-gold);">UNREGISTERED ID</p><div onclick="copyUID()" style="background:rgba(255,255,255,0.1); padding:8px; font-size:12px; cursor:pointer; word-break:break-all;">${uid}</div></div>`;
     }
 
-    function startApp() {
-        onValue(ref(db, 'presence'), (snap) => {
-            document.getElementById('guest-count').innerText = snap.size || 0;
-        });
-        
-        onValue(ref(db, 'settings/isLive'), (snap) => {
-            const isLive = snap.val();
-            const openBtn = document.getElementById('open-popup-btn');
-            if (isLive === true) {
-                openBtn.disabled = false;
-                openBtn.style.opacity = "1";
-                openBtn.innerText = "SEND MESSAGE";
-                document.getElementById('lock-overlay').innerText = "";
-            } else {
-                openBtn.disabled = true;
-                openBtn.style.opacity = "0.5";
-                openBtn.innerText = "OFFLINE";
-                document.getElementById('lock-overlay').innerText = "現在、配信外のためロックされています";
-                window.closePopup();
+function startApp() {
+    // 1. Firebaseにある「ngWords」を監視し、中身が変わったらバケツを更新する
+    onValue(ref(db, 'settings/ngWords'), (snap) => {
+        const val = snap.val() || "";
+        // カンマで区切られた文字をバラバラにして、バケツ（配列）に入れる
+        currentNgWords = val.split(',').map(word => word.trim()).filter(word => word !== "");
+    });
+
+    // 2. 現在の接続人数を監視する（消えていた部分を復活）
+    onValue(ref(db, 'presence'), (snap) => {
+        document.getElementById('guest-count').innerText = snap.size || 0;
+    });
+    
+    // 3. 配信中かどうかのフラグを監視する
+    onValue(ref(db, 'settings/isLive'), (snap) => {
+        const isLive = snap.val();
+        const openBtn = document.getElementById('open-popup-btn');
+        if (isLive === true) {
+            openBtn.disabled = false;
+            openBtn.style.opacity = "1";
+            openBtn.innerText = "SEND MESSAGE";
+            document.getElementById('lock-overlay').innerText = "";
+        } else {
+            openBtn.disabled = true;
+            openBtn.style.opacity = "0.5";
+            openBtn.innerText = "OFFLINE";
+            document.getElementById('lock-overlay').innerText = "現在、配信外のためロックされています";
+            window.closePopup();
+        }
+    });
+
+    // 4. チャットログを表示する（自分には生、他人には伏字）
+    onValue(ref(db, 'vip_chats'), (snap) => {
+        const container = document.getElementById('chat-flow');
+        const welcome = document.getElementById('welcome-msg');
+        container.innerHTML = "";
+        if(welcome) container.appendChild(welcome);
+
+        snap.forEach((child) => {
+            const msg = child.val();
+            if (msg.uid === currentUser.uid || msg.isAdmin) {
+                const div = document.createElement('div');
+                div.className = 'msg-window';
+                
+                // 自分の送信ならtext（生）、自分以外（運営）ならfilteredTextを表示
+                const displayText = (msg.uid === currentUser.uid) ? msg.text : (msg.filteredText || msg.text);
+
+                div.innerHTML = `
+                    ${msg.isAdmin ? `<div style="font-size:9px; opacity:0.8; color:var(--accent-cyan);">RYUSEI YOI</div>` : ''}
+                    <div style="font-size:13px; word-break:break-all;">${displayText}</div>
+                `;
+                container.prepend(div); 
             }
         });
-        
-        onValue(ref(db, 'vip_chats'), (snap) => {
-            const container = document.getElementById('chat-flow');
-            const welcome = document.getElementById('welcome-msg');
-            container.innerHTML = "";
-            if(welcome) container.appendChild(welcome);
-
-// 【修正箇所】表示ロジック
-snap.forEach((child) => {
-    const msg = child.val();
-    if (msg.uid === currentUser.uid || msg.isAdmin) {
-        const div = document.createElement('div');
-        div.className = 'msg-window';
-        
-        // 自分のメッセージなら「生のtext」、運営（宵さん）なら「filteredText」を表示
-        const displayText = (msg.uid === currentUser.uid) ? msg.text : (msg.filteredText || msg.text);
-
-        div.innerHTML = `
-            ${msg.isAdmin ? `<div style="font-size:9px; opacity:0.8; color:var(--accent-cyan);">RYUSEI YOI</div>` : ''}
-            <div style="font-size:13px; word-break:break-all;">${displayText}</div>
-        `;
-        container.prepend(div); 
-    }
-});
-// snap.forEach のループが終わった直後
-// setTimeout を使うことで、ブラウザが描画を終えた瞬間にスクロールさせます
-setTimeout(() => {
-    container.scrollTop = 0;
-}, 10);
-            }); // ← ここで vip_chats の onValue を閉じる
-    } // ← ここで startApp 関数を閉じる
+        setTimeout(() => { container.scrollTop = 0; }, 10);
+    });
+}
 
 // 【このひとかたまりを丸ごと書き換え】
 window.sendMessage = () => {
@@ -426,18 +432,19 @@ window.sendMessage = () => {
     const rawText = input.value.trim(); 
     if (!rawText) return;
 
-    // 伏字ロジック
     let cleanText = rawText;
-    const ngWords = ["NGワード1", "住所", "本名"]; // NGワードリスト
-    ngWords.forEach(word => {
-        cleanText = cleanText.replace(word, '***');
+    
+    // バケツ（currentNgWords）に入っている禁止用語を一つずつチェックして伏字にする
+    currentNgWords.forEach(word => {
+        const regex = new RegExp(word, 'gi');
+        cleanText = cleanText.replace(regex, '***');
     });
 
-    // Firebaseへ「text」と「filteredText」の両方を送る
+    // Firebaseへ「生の文」と「伏せられた文」の両方を保存
     push(ref(db, 'vip_chats'), {
         uid: currentUser.uid,
-        text: rawText,            // 管理画面で見る「生データ」
-        filteredText: cleanText,  // 配信オーバーレイや一般チャットで出す「伏字データ」
+        text: rawText,           // 管理画面用（生）
+        filteredText: cleanText, // 配信画面用（伏字）
         timestamp: serverTimestamp()
     });
     
