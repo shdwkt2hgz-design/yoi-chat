@@ -6,55 +6,92 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@700&display=swap');
 
+        :root {
+            --accent-cyan: #38bdf8;
+            --window-bg: rgba(2, 6, 23, 0.85); /* 濃い紺の透過背景 */
+            --text-main: #f8fafc;
+        }
+
         body {
             margin: 0;
             overflow: hidden;
-            background: transparent; /* OBS等で透過させるため */
+            background: transparent;
             font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
         }
 
+        /* メッセージ表示のコンテナ */
         #pickup-container {
             position: absolute;
             bottom: 50px;
             left: 50px;
             width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
             opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .pickup-box {
-            background: rgba(2, 6, 23, 0.85); /* HUDと同じ深い紺色（透過あり） */
-            border-left: 4px solid #38bdf8; /* アクセントのシアン */
-            padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        /* ログビューア風の窓（ぼかし背景＋枠） */
+        .log-window {
+            position: relative;
+            background: var(--window-bg);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 20px 25px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* 四隅のコーナー線（Before/Afterで実装） */
+        .log-window::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            width: 20px;
+            height: 20px;
+            border-top: 2px solid var(--accent-cyan);
+            border-left: 2px solid var(--accent-cyan);
+        }
+
+        .log-window::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 20px;
+            height: 20px;
+            border-bottom: 2px solid var(--accent-cyan);
+            border-right: 2px solid var(--accent-cyan);
         }
 
         .label {
-            color: #38bdf8;
+            color: var(--accent-cyan);
             font-size: 12px;
-            margin-bottom: 5px;
-            letter-spacing: 2px;
+            font-family: 'Share Tech Mono';
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            opacity: 0.8;
         }
 
         .text {
-            color: #ffffff;
-            font-size: 24px;
-            line-height: 1.4;
+            color: var(--text-main);
+            font-size: 26px;
+            line-height: 1.5;
             word-wrap: break-word;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
         }
 
-        /* フェード表示用のクラス */
-        .show { opacity: 1 !important; }
+        /* 表示状態のスタイル */
+        #pickup-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
 
 <div id="pickup-container">
-    <div class="pickup-box">
-        <div class="label">SELECTED MESSAGE</div>
+    <div class="log-window">
+        <div class="label">PICKUP DATA</div>
         <div id="pickup-text" class="text"></div>
     </div>
 </div>
@@ -64,7 +101,6 @@
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
     const firebaseConfig = {
-        // 管理HUDと同じ設定をここに貼り付けてください
         apiKey: "AIzaSyAUmWZ9Itw_z6Dh-deOKmBQ8rLH9I2TAGY",
         authDomain: "yoi-vip-chat.firebaseapp.com",
         databaseURL: "https://yoi-vip-chat-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -80,18 +116,16 @@
     const container = document.getElementById('pickup-container');
     const textElem = document.getElementById('pickup-text');
 
-    // 管理HUDからの「PUSH」を監視
     onValue(ref(db, 'settings/pickup'), (snap) => {
         const data = snap.val();
         if (!data) return;
 
-        // 一度フェードアウトさせてからテキストを差し替え
         container.classList.remove('show');
 
         setTimeout(() => {
             textElem.innerText = data.text;
             container.classList.add('show');
-        }, 500);
+        }, 600);
     });
 </script>
 </body>
