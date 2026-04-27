@@ -395,16 +395,16 @@ textarea#chat-input {
             container.innerHTML = "";
             if(welcome) container.appendChild(welcome);
 
+// 【ここを書き換え】
 snap.forEach((child) => {
     const msg = child.val();
     if (msg.uid === currentUser.uid || msg.isAdmin) {
         const div = document.createElement('div');
         div.className = 'msg-window';
         div.innerHTML = `
-    ${msg.isAdmin ? `<div style="font-size:9px; opacity:0.8; color:var(--accent-cyan);">RYUSEI YOI</div>` : ''}
-    <div style="font-size:13px; word-break:break-all;">${msg.text}</div>
-`;
-        // container.appendChild(div); ではなく prepend を使う
+            ${msg.isAdmin ? `<div style="font-size:9px; opacity:0.8; color:var(--accent-cyan);">RYUSEI YOI</div>` : ''}
+            <div style="font-size:13px; word-break:break-all;">${msg.filteredText || msg.text}</div>
+        `;
         container.prepend(div); 
     }
 });
@@ -416,17 +416,30 @@ setTimeout(() => {
             }); // ← ここで vip_chats の onValue を閉じる
     } // ← ここで startApp 関数を閉じる
 
-    window.sendMessage = () => {
-        const input = document.getElementById('chat-input');
-        if (!input.value.trim()) return;
-        push(ref(db, 'vip_chats'), {
-            uid: currentUser.uid,
-            text: input.value,
-            timestamp: serverTimestamp()
-        });
-        input.value = "";
-        window.closePopup();
-    };
+// 【このひとかたまりを丸ごと書き換え】
+window.sendMessage = () => {
+    const input = document.getElementById('chat-input');
+    const rawText = input.value.trim(); 
+    if (!rawText) return;
+
+    // 伏字ロジック
+    let cleanText = rawText;
+    const ngWords = [/バカ/g, /あほ/g, /badword/gi]; // NGワードリスト
+    ngWords.forEach(word => {
+        cleanText = cleanText.replace(word, '***');
+    });
+
+    // Firebaseへ「text」と「filteredText」の両方を送る
+    push(ref(db, 'vip_chats'), {
+        uid: currentUser.uid,
+        text: rawText,            // 管理画面で見る「生データ」
+        filteredText: cleanText,  // 配信オーバーレイや一般チャットで出す「伏字データ」
+        timestamp: serverTimestamp()
+    });
+    
+    input.value = "";
+    window.closePopup();
+};
 
     document.getElementById('login-trigger-btn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
     document.getElementById('send-btn').onclick = window.sendMessage;
