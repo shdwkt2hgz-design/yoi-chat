@@ -99,20 +99,18 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-        // --- 1. 伏せ字の準備 ---
-const maskWords = ["NGワード1", "住所", "本名"]; // 配信に出したくないワードをここに入れる
+    let currentUser = null;
+let currentNgWords = [];
 
 function applyMask(text) {
-    if (!text) return "";
-    let masked = text;
-    maskWords.forEach(word => {
-        const reg = new RegExp(word, 'g');
-        masked = masked.replace(reg, '＊＊＊');
+    let maskedText = text;
+    // ここで currentNgWords を使って伏字にする
+    currentNgWords.forEach(word => {
+        const regex = new RegExp(word, 'gi');
+        maskedText = maskedText.replace(regex, '***');
     });
-    return masked;
+    return maskedText;
 }
-
-    let currentUser = null;
 
     onAuthStateChanged(auth, (user) => {
         const overlay = document.getElementById('login-overlay');
@@ -139,7 +137,12 @@ function applyMask(text) {
             btn.innerText = isLive ? "配信終了 (ロック)" : "配信開始 (解禁)";
             badge.innerText = isLive ? "BROADCASTING" : "STANDBY";
             badge.className = `status-badge ${isLive ? 'live-on' : 'live-off'}`;
-        });
+            });
+            
+onValue(ref(db, 'settings/ngWords'), (snap) => {
+        const val = snap.val() || "";
+        currentNgWords = val.split(',').map(word => word.trim()).filter(word => word !== "");
+    });
 
 // 2. 全チャット監視 (表示順序を入れ替え)
 onValue(ref(db, 'vip_chats'), (snap) => {
