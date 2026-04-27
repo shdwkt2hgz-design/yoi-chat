@@ -424,7 +424,7 @@ window.sendMessage = () => {
 
     // 伏字ロジック
     let cleanText = rawText;
-    const ngWords = [/バカ/g, /あほ/g, /badword/gi]; // NGワードリスト
+    const ngWords = ["NGワード1", "住所", "本名"]; // NGワードリスト
     ngWords.forEach(word => {
         cleanText = cleanText.replace(word, '***');
     });
