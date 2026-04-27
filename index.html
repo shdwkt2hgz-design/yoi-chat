@@ -401,9 +401,9 @@ snap.forEach((child) => {
         const div = document.createElement('div');
         div.className = 'msg-window';
         div.innerHTML = `
-            <div style="font-size:9px; opacity:0.5;">${msg.isAdmin ? 'RYUSEI YOI' : 'UID: ' + msg.uid}</div>
-            <div style="font-size:13px; word-break:break-all;">${msg.text}</div>
-        `;
+    ${msg.isAdmin ? `<div style="font-size:9px; opacity:0.8; color:var(--accent-cyan);">RYUSEI YOI</div>` : ''}
+    <div style="font-size:13px; word-break:break-all;">${msg.text}</div>
+`;
         // container.appendChild(div); ではなく prepend を使う
         container.prepend(div); 
     }
