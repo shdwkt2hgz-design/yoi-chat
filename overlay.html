@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>STREAM OVERLAY - 虚星 宵</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: transparent; /* OBS等で透過させるため */
+            font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
+        }
+
+        #pickup-container {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .pickup-box {
+            background: rgba(2, 6, 23, 0.85); /* HUDと同じ深い紺色（透過あり） */
+            border-left: 4px solid #38bdf8; /* アクセントのシアン */
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .label {
+            color: #38bdf8;
+            font-size: 12px;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .text {
+            color: #ffffff;
+            font-size: 24px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        /* フェード表示用のクラス */
+        .show { opacity: 1 !important; }
+    </style>
+</head>
+<body>
+
+<div id="pickup-container">
+    <div class="pickup-box">
+        <div class="label">SELECTED MESSAGE</div>
+        <div id="pickup-text" class="text"></div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+    const firebaseConfig = {
+        // 管理HUDと同じ設定をここに貼り付けてください
+        apiKey: "AIzaSyAUmWZ9Itw_z6Dh-deOKmBQ8rLH9I2TAGY",
+        authDomain: "yoi-vip-chat.firebaseapp.com",
+        databaseURL: "https://yoi-vip-chat-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "yoi-vip-chat",
+        storageBucket: "yoi-vip-chat.firebasestorage.app",
+        messagingSenderId: "751624052656",
+        appId: "1:751624052656:web:780bad2d69c504e67ec075"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const container = document.getElementById('pickup-container');
+    const textElem = document.getElementById('pickup-text');
+
+    // 管理HUDからの「PUSH」を監視
+    onValue(ref(db, 'settings/pickup'), (snap) => {
+        const data = snap.val();
+        if (!data) return;
+
+        // 一度フェードアウトさせてからテキストを差し替え
+        container.classList.remove('show');
+
+        setTimeout(() => {
+            textElem.innerText = data.text;
+            container.classList.add('show');
+        }, 500);
+    });
+</script>
+</body>
+</html>
