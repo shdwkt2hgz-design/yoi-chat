@@ -270,18 +270,19 @@ textarea#chat-input {
     }
 }
 
-/* カード外枠 */
+        /* カード外枠：背景画像（立ち絵入り）を復活させ、サイズを固定 */
 .log-card {
     position: relative;
     width: 960px;
     height: 540px;
-    background-color: #020617;
+    /* ★背景画像を再設定。立ち絵はこの画像に含まれています */
+    background-image: url('your-background-image2.png');
     background-size: cover;
     background-position: center;
     overflow: hidden;
     font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
     color: #f8fafc;
-    flex-shrink: 0; /* ←ここが重要：縮まないように固定 */
+    flex-shrink: 0;
 }
 
 /* 走査線エフェクト */
@@ -389,13 +390,16 @@ textarea#chat-input {
     border-right: 3px solid #00ffff;
 }
 
-/* その他パーツ（ロゴ・ラベル） */
+/* ロゴ（ your-logo.png ）だけを左下に戻す */
 .logo-area { 
     position: absolute; 
-    bottom: 30px; 
-    right: 40px; 
+    bottom: 20px; /* 下からの位置 */
+    left: 20px;   /* 左からの位置 */
 }
-.logo-area img { height: 100px; filter: drop-shadow(0 0 8px #00ffff); }
+.logo-area img { 
+    height: 100px; /* ロゴの大きさ */
+    filter: drop-shadow(0 0 8px #00ffff); 
+}
 .capture-label { position: absolute; top: 15px; right: 25px; font-size: 0.7rem; opacity: 0.3; letter-spacing: 0.2em; }
 
         /* タイムスタンプの見た目を調整（日付と時刻をセットで表示） */
