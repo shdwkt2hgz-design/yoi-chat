@@ -275,13 +275,13 @@ textarea#chat-input {
     position: relative;
     width: 960px;
     height: 540px;
-    background-image: url('your-background-image2.png');
+    background-color: #020617;
     background-size: cover;
     background-position: center;
     overflow: hidden;
-    /* ここを今のコードの変数に合わせて書き換えました */
     font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
-    color: #f8fafc; 
+    color: #f8fafc;
+    flex-shrink: 0; /* ←ここが重要：縮まないように固定 */
 }
 
 /* 走査線エフェクト */
@@ -390,11 +390,23 @@ textarea#chat-input {
 }
 
 /* その他パーツ（ロゴ・ラベル） */
-.logo-area { position: absolute; bottom: 20px; left: 20px; }
+.logo-area { 
+    position: absolute; 
+    bottom: 30px; 
+    right: 40px; 
+}
 .logo-area img { height: 100px; filter: drop-shadow(0 0 8px #00ffff); }
 .capture-label { position: absolute; top: 15px; right: 25px; font-size: 0.7rem; opacity: 0.3; letter-spacing: 0.2em; }
 
-        
+        /* タイムスタンプの見た目を調整（日付と時刻をセットで表示） */
+.timestamp {
+    display: block;
+    text-align: right;
+    margin-top: 10px;
+    opacity: 0.8;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -634,14 +646,16 @@ window.sendMessage = () => {
 </script>
 <script>
 window.openCardPreview = (text, time, isAdmin) => {
-    // 1. 各要素に文字をセット
-    document.getElementById('preview-text').innerText = text;
-    document.getElementById('preview-time').innerText = time;
+    // 今日の日付を取得 (YYYY/MM/DD 形式)
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}`;
     
-    // 2. タイトルを管理者かどうかで切り替え（宵さんのこだわり）
+    // 画面に「日付 + 時刻」をセット
+    document.getElementById('preview-text').innerText = text;
+    document.getElementById('preview-time').innerText = `${dateStr} ${time}`;
+    
     document.getElementById('preview-title').innerText = isAdmin ? "【緊急】コアシステムより通信" : "【雑談】宇宙船の窓から観測中";
 
-    // 3. プレビュー画面を表示
     document.getElementById('screenshot-preview').style.display = 'flex';
 };
 
@@ -667,26 +681,25 @@ window.openCardPreview = (text, time, isAdmin) => {
 
 <div id="screenshot-preview" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:5000; justify-content:center; align-items:center; flex-direction:column; backdrop-filter: blur(10px);">
     
-    <div id="card-capture-area" class="log-card" style="transform: scale(0.4); transform-origin: center;">
+    <div id="card-capture-area" class="log-card" style="transform: scale(0.35); transform-origin: center;">
         <div class="capture-label">OBSERVATION LOG // RYUSEI YOI</div>
 
         <div class="info-container">
             <p class="dist-title" id="preview-title">【雑談】宇宙船の窓から観測中</p>
-
             <div class="comment-box">
-    <span class="comment-text" id="preview-text"></span>
-</div>
-
-<span class="timestamp" id="preview-time" style="display: block; text-align: right; margin-top: 10px; opacity: 0.7;"></span>
+                <span class="comment-text" id="preview-text"></span>
+            </div>
+            <span class="timestamp" id="preview-time"></span>
+        </div>
 
         <div class="logo-area">
-            <img src="your-logo.png" alt="虚星宵 ロゴ" id="preview-logo">
+            <img src="your-logo.png" alt="LOGO" id="preview-logo">
         </div>
     </div>
     
-    <div style="margin-top: 30px; display:flex; gap:20px; z-index:6000;">
-        <button onclick="closePreview()" style="padding:15px 30px; background:#444; color:#fff; border:none; border-radius:5px; cursor:pointer;">キャンセル</button>
-        <button onclick="saveCardImage()" style="padding:15px 30px; background:var(--accent-cyan); color:#020617; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">画像を保存する</button>
+    <div style="margin-top: 20px; display:flex; gap:20px; z-index:6000;">
+        <button onclick="closePreview()" style="padding:12px 24px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">キャンセル</button>
+        <button onclick="saveCardImage()" style="padding:12px 24px; background:var(--accent-cyan); color:#020617; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">画像を保存</button>
     </div>
 </div>
 
