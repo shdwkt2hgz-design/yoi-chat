@@ -632,12 +632,17 @@ window.sendMessage = () => {
     window.closePopup();
 </script>
 <script>
-    window.openCardPreview = (text, time, isAdmin) => {
-        document.getElementById('preview-text').innerText = text;
-        document.getElementById('preview-time').innerText = time;
-        document.getElementById('preview-title').innerText = isAdmin ? "CORE SYSTEM LOG" : "GUEST DATA LOG";
-        document.getElementById('screenshot-preview').style.display = 'flex';
-    };
+window.openCardPreview = (text, time, isAdmin) => {
+    // 1. 各要素に文字をセット
+    document.getElementById('preview-text').innerText = text;
+    document.getElementById('preview-time').innerText = time;
+    
+    // 2. タイトルを管理者かどうかで切り替え（宵さんのこだわり）
+    document.getElementById('preview-title').innerText = isAdmin ? "【緊急】コアシステムより通信" : "【雑談】宇宙船の窓から観測中";
+
+    // 3. プレビュー画面を表示
+    document.getElementById('screenshot-preview').style.display = 'flex';
+};
 
     window.closePreview = () => {
         document.getElementById('screenshot-preview').style.display = 'none';
