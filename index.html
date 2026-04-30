@@ -648,15 +648,22 @@ window.sendMessage = () => {
     setInterval(updateBG, 60000);
     window.closePopup();
 </script>
-<script>
-window.openCardPreview = (text, time, isAdmin) => {
-    // 今日の日付を取得 (YYYY/MM/DD 形式)
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}`;
+<script>window.openCardPreview = (text, timestampValue, isAdmin) => {
+    // 1. 引数でもらった timestampValue（数字の羅列）を日付形式に直す
+    const dateObj = new Date(timestampValue);
     
-    // 画面に「日付 + 時刻」をセット
+    // 2. 年月日を組み立てる
+    const y = dateObj.getFullYear();
+    const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const d = dateObj.getDate().toString().padStart(2, '0');
+    const dateStr = `${y}/${m}/${d}`;
+    
+    // 3. 時刻を組み立てる
+    const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    // 4. 画面にセット
     document.getElementById('preview-text').innerText = text;
-    document.getElementById('preview-time').innerText = `${dateStr} ${time}`;
+    document.getElementById('preview-time').innerText = `${dateStr} ${timeStr}`;
     
     document.getElementById('preview-title').innerText = isAdmin ? "【緊急】コアシステムより通信" : "【雑談】宇宙船の窓から観測中";
 
