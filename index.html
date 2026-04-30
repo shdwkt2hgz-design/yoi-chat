@@ -271,6 +271,8 @@ textarea#chat-input {
 }
         
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 </head>
 <body>
 
@@ -493,5 +495,46 @@ window.sendMessage = () => {
     setInterval(updateBG, 60000);
     window.closePopup();
 </script>
+<script>
+    window.openCardPreview = (text, time, isAdmin) => {
+        document.getElementById('preview-text').innerText = text;
+        document.getElementById('preview-time').innerText = time;
+        document.getElementById('preview-title').innerText = isAdmin ? "CORE SYSTEM LOG" : "GUEST DATA LOG";
+        document.getElementById('screenshot-preview').style.display = 'flex';
+    };
+
+    window.closePreview = () => {
+        document.getElementById('screenshot-preview').style.display = 'none';
+    };
+
+    window.saveCardImage = () => {
+        const target = document.getElementById('card-capture-area');
+        html2canvas(target, {
+            backgroundColor: "#020617",
+            scale: 2,
+            useCORS: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `yoi-log-${Date.now()}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            closePreview();
+        });
+    };
+</script>
+
+<div id="screenshot-preview" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:5000; justify-content:center; align-items:center; flex-direction:column;">
+    <div id="card-capture-area" class="comment-box" style="width:90%; max-width:400px; background:#020617; padding:30px; position:relative;">
+        <div class="dist-title" id="preview-title" style="font-size:12px; color:var(--accent-cyan); margin-bottom:10px;">GUEST DATA LOG</div>
+        <div class="comment-text" id="preview-text" style="font-size:16px; color:#fff; min-height:60px; line-height:1.6; word-break:break-all;"></div>
+        <div class="timestamp" id="preview-time" style="font-size:10px; text-align:right; opacity:0.7; margin-top:15px;">00:00</div>
+    </div>
+    
+    <div style="margin-top:25px; display:flex; gap:15px;">
+        <button onclick="closePreview()" style="padding:10px 20px; background:#444; color:#fff; border:none; border-radius:5px; cursor:pointer;">キャンセル</button>
+        <button onclick="saveCardImage()" style="padding:10px 20px; background:var(--accent-cyan); color:var(--bg-deep); border:none; border-radius:5px; font-weight:bold; cursor:pointer;">画像を保存する</button>
+    </div>
+</div>
+
 </body>
 </html>
