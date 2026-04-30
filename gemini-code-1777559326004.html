@@ -1,55 +1,69 @@
-<!-- index.html（コア：機能・レイアウト不変） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title></title>
-<link rel="stylesheet" href="style.css">
+<title>VIP CHAT</title>
+
+<style>
+:root {
+  --bg-deep: #020617;
+  --accent-cyan: #38bdf8;
+  --text-main: #f8fafc;
+  --card-bg: none;
+}
+
+body {
+  margin:0;
+  background: var(--bg-deep);
+  color: var(--text-main);
+  font-family: sans-serif;
+}
+
+header {
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid var(--accent-cyan);
+}
+
+#chat-flow {
+  padding:20px;
+}
+
+.msg-window {
+  border:1px solid var(--accent-cyan);
+  padding:10px;
+  margin-bottom:10px;
+}
+
+.log-card {
+  width:400px;
+  height:200px;
+  background-image: var(--card-bg);
+  background-size:cover;
+}
+</style>
 </head>
+
 <body>
 
 <div id="fixed-bg"></div>
 
 <header>
-  <div class="header-left">
-    <div id="app-title"></div>
-    <div class="uid-area" onclick="copyUID()" id="my-uid">UID: GUEST_MODE</div>
+  <div>
+    <div id="app-title">VIP CHAT</div>
+    <div id="my-uid">UID: GUEST</div>
   </div>
-  <div class="header-right">
-    <div class="counter"><span>GUESTS</span><b id="guest-count">0</b></div>
-  </div>
+  <div>GUESTS: <span id="guest-count">0</span></div>
 </header>
 
 <div id="chat-flow"></div>
 
 <img id="preview-logo" />
 
-<script src="config.js"></script>
-<script src="applyConfig.js"></script>
-</body>
-</html>
-
-
-/* style.css（既存CSS＋変数対応） */
-:root {
-  --accent-cyan: #38bdf8;
-  --bg-deep: #020617;
-  --text-main: #f8fafc;
-  --card-bg: none;
-}
-
-body {
-  background: var(--bg-deep);
-  color: var(--text-main);
-}
-
-.log-card {
-  background-image: var(--card-bg);
-}
-
-
-// config.js（差し替え用）
+<script>
+// ===== config =====
 window.APP_CONFIG = {
   title: "VIP CHAT",
   username: "虚星 宵",
@@ -66,14 +80,13 @@ window.APP_CONFIG = {
     noon: "noon.jpg",
     evening: "evening.jpg",
     night: "night.jpg",
-    card: "card.png"
+    card: "your-background-image.png"
   },
 
-  logo: "logo.png"
+  logo: "your-logo.png"
 };
 
-
-// applyConfig.js（非破壊適用）
+// ===== apply config =====
 const cfg = window.APP_CONFIG;
 
 // タイトル
@@ -93,7 +106,7 @@ if (logo) logo.src = cfg.logo;
 // カード背景
 document.documentElement.style.setProperty('--card-bg', `url('${cfg.background.card}')`);
 
-// 背景切り替え
+// 背景切替
 function updateBG() {
   const hour = new Date().getHours();
   let img = cfg.background.night;
@@ -102,9 +115,21 @@ function updateBG() {
   else if (hour >= 12 && hour < 17) img = cfg.background.noon;
   else if (hour >= 17 && hour < 20) img = cfg.background.evening;
 
-  const bg = document.getElementById("fixed-bg");
-  if (bg) bg.style.backgroundImage = `url('${img}')`;
+  document.getElementById('fixed-bg').style.backgroundImage = `url('${img}')`;
 }
 
 updateBG();
 setInterval(updateBG, 60000);
+
+// ===== mock chat (動作確認用) =====
+const flow = document.getElementById("chat-flow");
+for (let i=0;i<3;i++){
+  const div = document.createElement("div");
+  div.className = "msg-window";
+  div.innerText = "テストメッセージ " + i;
+  flow.appendChild(div);
+}
+</script>
+
+</body>
+</html>
