@@ -436,6 +436,8 @@ snap.forEach((child) => {
         container.prepend(div); 
     }
 });
+setTimeout(() => { container.scrollTop = 0; }, 10);
+    });
 }
 
 // 【このひとかたまりを丸ごと書き換え】
