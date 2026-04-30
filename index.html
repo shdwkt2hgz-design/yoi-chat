@@ -408,24 +408,34 @@ function startApp() {
         container.innerHTML = "";
         if(welcome) container.appendChild(welcome);
 
-        snap.forEach((child) => {
-            const msg = child.val();
-            if (msg.uid === currentUser.uid || msg.isAdmin) {
-                const div = document.createElement('div');
-                div.className = 'msg-window';
-                
-                // 自分の送信ならtext（生）、自分以外（運営）ならfilteredTextを表示
-                const displayText = (msg.uid === currentUser.uid) ? msg.text : (msg.filteredText || msg.text);
+// --- startApp関数内の onValue(ref(db, 'vip_chats'), ... ) の中身 ---
 
-                div.innerHTML = `
+snap.forEach((child) => {
+    const msg = child.val();
+    if (msg.uid === currentUser.uid || msg.isAdmin) {
+        const div = document.createElement('div');
+        div.className = 'msg-window';
+        
+        const displayText = (msg.uid === currentUser.uid) ? msg.text : (msg.filteredText || msg.text);
+        // 保存時に表示する時刻を取得
+        const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+
+        // ★ここをボタン付きの構造に書き換えます
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div>
                     ${msg.isAdmin ? `<div style="font-size:9px; opacity:0.8; color:var(--accent-cyan);">RYUSEI YOI</div>` : ''}
                     <div style="font-size:13px; word-break:break-all;">${displayText}</div>
-                `;
-                container.prepend(div); 
-            }
-        });
-        setTimeout(() => { container.scrollTop = 0; }, 10);
-    });
+                </div>
+                <button onclick="openCardPreview('${displayText.replace(/'/g, "\\'")}', '${timeStr}', ${msg.isAdmin})" 
+                        style="background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); font-size:9px; padding:2px 5px; margin-left:10px; cursor:pointer; flex-shrink:0;">
+                    CARD
+                </button>
+            </div>
+        `;
+        container.prepend(div); 
+    }
+});
 }
 
 // 【このひとかたまりを丸ごと書き換え】
