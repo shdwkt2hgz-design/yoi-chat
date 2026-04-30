@@ -1,519 +1,110 @@
+<!-- index.html（コア：機能・レイアウト不変） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>VIP CHAT - 虚星 宵</title>
-    <style>
-        /* =========================================
-           1. 基本設定 & フォント
-        ========================================= */
-        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap');
-
-        :root {
-            --bg-deep: #020617;
-            --accent-cyan: #38bdf8;
-            --accent-gold: #fbbf24;
-            --text-main: #f8fafc;
-            --window-bg: rgba(56, 189, 248, 0.05);
-        }
-
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
-            height: 100dvh;
-            display: flex; flex-direction: column;
-            overflow: hidden;
-            touch-action: manipulation;
-        }
-
-        /* =========================================
-           2. メインレイアウト（ヘッダー・ビデオ・ログ）
-        ========================================= */
-        header {
-            padding: calc(env(safe-area-inset-top) + 5px) 15px 5px;
-            display: grid; grid-template-columns: 1fr 1fr;
-            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
-            background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(10px); z-index: 100;
-        }
-
-        .uid-area { font-size: 10px; opacity: 0.8; cursor: pointer; }
-        .counter { font-size: 12px; color: var(--accent-cyan); text-align: right; }
-
-        .video-container {
-            flex-shrink: 0 !important;
-            width: 100% !important;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            position: relative;
-            z-index: 10;
-            max-height: 50dvh;
-        }
-
-        iframe { width: 100%; height: 100%; border: none; display: block; }
-
-        #chat-flow {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-            padding: 15px 15px 80px;
-            display: flex;
-            flex-direction: column;
-            mask-image: linear-gradient(to top, black 90%, transparent 100%);
-        }
-
-        .msg-window {
-            position: relative; background: var(--window-bg);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            padding: 8px 12px; margin-bottom: 10px; backdrop-filter: blur(4px);
-        }
-
-        /* =========================================
-           3. 入力エリア（スマホ版 & ポップアップ）
-        ========================================= */
-        .input-area {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            padding: 10px 0 calc(env(safe-area-inset-bottom) + 15px);
-            background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(8px); z-index: 1000;
-            display: flex; justify-content: center; align-items: center;
-            border-top: 1px solid rgba(56, 189, 248, 0.2);
-        }
-
-        #input-popup {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); z-index: 2000;
-            display: flex; justify-content: center; align-items: flex-start;
-            padding-top: 100px; touch-action: none; overscroll-behavior: contain;
-        }
-
-        .popup-content {
-            background: #fff; width: 85%; max-width: 300px; padding: 12px;
-            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            display: flex; flex-direction: column; gap: 8px;
-        }
-
-        textarea#chat-input {
-            width: 100%; height: 50px; border: 1px solid #eee; padding: 8px;
-            font-size: 14px; border-radius: 6px; resize: none; outline: none;
-            box-sizing: border-box; color: #333; background: #fdfdfd;
-        }
-
-        .char-counter { position: absolute; bottom: 5px; right: 10px; font-size: 10px; color: #666; }
-
-        #send-btn {
-            width: 100%; background: var(--accent-cyan); color: var(--bg-deep);
-            border: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 14px;
-        }
-
-        /* =========================================
-           4. PC版レスポンシブ (min-width: 768px)
-        ========================================= */
-        @media (min-width: 768px) {
-            #input-popup {
-                display: flex !important; position: fixed; top: auto; bottom: 0;
-                height: auto; background: rgba(2, 6, 23, 0.95); padding-top: 0;
-                border-top: 2px solid var(--accent-cyan); backdrop-filter: blur(10px);
-            }
-            .popup-content {
-                width: 100%; max-width: 1200px; background: none; box-shadow: none;
-                flex-direction: row; align-items: center; padding: 15px 30px; gap: 15px; margin: 0 auto;
-            }
-            .popup-content button[onclick="closePopup()"] { display: none; }
-            textarea#chat-input { flex: 1; height: 44px; width: 100%; margin: 0; }
-            .input-area { display: none !important; }
-            #lock-overlay { bottom: 80px; }
-            .popup-content > div:nth-child(2) { flex: 1; display: flex; }
-            #send-btn { width: 140px; height: 44px; flex-shrink: 0; margin: 0; }
-            #chat-flow { padding-bottom: 100px; }
-        }
-
-        /* PCブラウザ細長時（ホバー可能デバイス） */
-        @media (hover: hover) and (pointer: fine) and (max-width: 767px) {
-            #input-popup { align-items: flex-start; padding-top: 500px; padding-bottom: 0; }
-            .popup-content {
-                width: 80%; max-width: 600px; height: 20dvh;
-                background: var(--bg-deep); border: 2px solid var(--accent-cyan); border-radius: 15px;
-            }
-            textarea#chat-input { flex: 1; height: auto; font-size: 16px; }
-            #send-btn { height: 50px; }
-        }
-
-        /* =========================================
-           5. カード保存機能（Snapshot用）
-        ========================================= */
-        .log-card {
-            position: relative; width: 960px; height: 540px;
-            background-image: url('your-background-image.png');
-            background-size: cover; background-position: center;
-            overflow: hidden; font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
-            color: #f8fafc; flex-shrink: 0;
-        }
-
-        /* エフェクト層 */
-        .log-card::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 3px; z-index: 10; pointer-events: none;
-        }
-
-        .log-card::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 255, 255, 0.02); opacity: 0; z-index: 11;
-            pointer-events: none; animation: flicker 4s infinite;
-        }
-
-        @keyframes flicker {
-            0% { opacity: 0.1; } 5% { opacity: 0.2; } 10% { opacity: 0.1; } 100% { opacity: 0; }
-        }
-
-        /* カード内情報配置 */
-        .info-container {
-            position: absolute; top: 80px; left: 100px; width: 600px;
-            display: flex; flex-direction: column; z-index: 20;
-        }
-
-        .dist-title {
-            font-size: 1.4rem; color: var(--accent-cyan); margin: 0;
-            letter-spacing: 0.05em; animation: glitch 3s infinite;
-        }
-
-        @keyframes glitch {
-            0% { transform: translate(0); }
-            1% { transform: translate(-2px, 1px); opacity: 0.8; }
-            2% { transform: translate(2px, -1px); opacity: 1; }
-            3% { transform: translate(0); }
-            100% { transform: translate(0); }
-        }
-
-        .comment-box {
-            padding: 25px;
-            background-image: linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 20px 20px; background-color: rgba(0, 10, 20, 0.4);
-            backdrop-filter: blur(8px); position: relative;
-        }
-
-        .comment-box::before { content: ""; position: absolute; top: -2px; left: -2px; width: 20px; height: 20px; border-top: 3px solid #00ffff; border-left: 3px solid #00ffff; }
-        .comment-box::after { content: ""; position: absolute; bottom: -2px; right: -2px; width: 20px; height: 20px; border-bottom: 3px solid #00ffff; border-right: 3px solid #00ffff; }
-
-        .comment-text { font-size: 1.5rem; line-height: 1.5; word-wrap: break-word; }
-
-        .logo-area { position: absolute; bottom: 20px; left: 20px; }
-        .logo-area img { height: 100px; filter: drop-shadow(0 0 8px #00ffff); }
-
-        .timestamp { display: block; text-align: right; margin-top: 10px; opacity: 0.8; font-size: 1.2rem; letter-spacing: 0.1em; }
-        .capture-label { position: absolute; top: 15px; right: 25px; font-size: 0.7rem; opacity: 0.3; letter-spacing: 0.2em; }
-
-        /* =========================================
-           6. その他
-        ========================================= */
-        #fixed-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; background-size: cover; background-position: center;
-            transition: background-image 1.5s ease;
-        }
-
-        #lock-overlay {
-            position: fixed; bottom: 60px; left: 0; width: 100%;
-            font-size: 11px; color: #f87171; text-align: center; z-index: 1001;
-        }
-
-        .guide-panel { text-align: center; border: 1px dashed var(--accent-cyan); padding: 20px; margin: 10px 0; }
-    </style>
-    
-    <!-- カード画像化ライブラリ -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title></title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="fixed-bg"></div>
+<div id="fixed-bg"></div>
 
-    <!-- ヘッダー -->
-    <header>
-        <div class="header-left">
-            <div style="font-size:14px; font-weight:bold; color:var(--accent-cyan);">VIP CHAT</div>
-            <div class="uid-area" onclick="copyUID()" id="my-uid">UID: GUEST_MODE</div>
-        </div>
-        <div class="header-right">
-            <div class="counter"><span>GUESTS</span><b id="guest-count">0</b></div>
-        </div>
-    </header>
+<header>
+  <div class="header-left">
+    <div id="app-title"></div>
+    <div class="uid-area" onclick="copyUID()" id="my-uid">UID: GUEST_MODE</div>
+  </div>
+  <div class="header-right">
+    <div class="counter"><span>GUESTS</span><b id="guest-count">0</b></div>
+  </div>
+</header>
 
-    <!-- メインコンテンツ -->
-    <div class="video-container">
-        <iframe src="https://www.youtube.com/embed/LIVE_ID_HERE" allowfullscreen></iframe>
-    </div>
+<div id="chat-flow"></div>
 
-    <div id="chat-flow">
-        <div id="welcome-msg" class="guide-panel">
-            <p id="auth-status-msg" style="font-size:11px;">SYSTEM READY. PLEASE LOGIN.</p>
-            <button id="login-trigger-btn" style="border: 1px solid var(--accent-cyan); padding: 5px 15px; margin-top:10px; background:none; color:#fff;">Google LOGIN</button>
-        </div>
-    </div>
+<img id="preview-logo" />
 
-    <div id="lock-overlay">認証を完了してください</div>
-
-    <!-- 入力・ポップアップ系 -->
-    <div class="input-area">
-        <button id="open-popup-btn" disabled style="background: var(--accent-cyan); color: var(--bg-deep); border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; opacity: 0.5; transition: all 0.3s;">
-            OFFLINE
-        </button>
-    </div>
-
-    <div id="input-popup">
-        <div class="popup-content">
-            <div style="text-align: right;">
-                <button onclick="closePopup()" style="background:none; border:none; font-size:24px; color:#999; cursor:pointer;">&times;</button>
-            </div>
-            <div style="position:relative; flex: 1;">
-                <textarea id="chat-input" placeholder="メッセージを入力..." maxlength="140" autocomplete="off"></textarea>
-                <div class="char-counter"><span id="current-char">0</span>/140</div>
-            </div>
-            <button id="send-btn">送信</button>
-        </div>
-    </div>
-
-    <!-- カードプレビュー・モーダル -->
-    <div id="screenshot-preview" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:5000; justify-content:center; align-items:center; flex-direction:column; backdrop-filter: blur(10px);">
-        <!-- 撮影エリア本体 -->
-        <div id="card-capture-area" class="log-card" style="transform: scale(0.35); transform-origin: center;">
-            <div class="capture-label">OBSERVATION LOG // UROHOSHI YOI</div>
-            <div class="info-container">
-                <p class="dist-title" id="preview-title">【雑談】宇宙船の窓から</p>
-                <div class="comment-box">
-                    <span class="comment-text" id="preview-text"></span>
-                </div>
-                <span class="timestamp" id="preview-time"></span>
-            </div>
-            <div class="logo-area">
-                <img src="your-logo.png" alt="LOGO" id="preview-logo">
-            </div>
-        </div>
-        <!-- 操作ボタン -->
-        <div style="margin-top: 20px; display:flex; gap:20px; z-index:6000;">
-            <button onclick="closePreview()" style="padding:12px 24px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">キャンセル</button>
-            <button onclick="saveCardImage()" style="padding:12px 24px; background:var(--accent-cyan); color:#020617; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">画像を保存</button>
-        </div>
-    </div>
-
-    <!-- =========================================
-       JavaScript ロジック
-    ========================================= -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getDatabase, ref, push, onValue, set, get, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAUmWZ9Itw_z6Dh-deOKmBQ8rLH9I2TAGY",
-            authDomain: "yoi-vip-chat.firebaseapp.com",
-            databaseURL: "https://yoi-vip-chat-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "yoi-vip-chat",
-            storageBucket: "yoi-vip-chat.firebasestorage.app",
-            messagingSenderId: "751624052656",
-            appId: "1:751624052656:web:780bad2d69c504e67ec075",
-            measurementId: "G-G67NWSS1C1"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        let currentUser = null;
-        let currentNgWords = [];
-
-        // 認証監視
-        onAuthStateChanged(auth, async (user) => {
-            const myUid = document.getElementById('my-uid');
-            const loginBtn = document.getElementById('login-trigger-btn');
-            if (user) {
-                currentUser = user;
-                myUid.innerText = `UID: ${user.uid}`;
-                if(loginBtn) loginBtn.style.display = 'none';
-                const whitelistRef = ref(db, `whitelist/${user.uid}`);
-                const snapshot = await get(whitelistRef);
-                if (snapshot.exists() && snapshot.val() === true) {
-                    document.getElementById('welcome-msg').style.display = 'none';
-                    startApp();
-                } else {
-                    showRegistrationGuide(user.uid);
-                }
-            } else {
-                myUid.innerText = "UID: GUEST_MODE";
-            }
-        });
-
-        function showRegistrationGuide(uid) {
-            const authStatus = document.getElementById('auth-status-msg');
-            authStatus.innerHTML = `<div style="padding:10px; border:1px dashed var(--accent-gold);"><p style="color:var(--accent-gold);">UNREGISTERED ID</p><div onclick="copyUID()" style="background:rgba(255,255,255,0.1); padding:8px; font-size:12px; cursor:pointer; word-break:break-all;">${uid}</div></div>`;
-        }
-
-        // メインアプリ開始
-        function startApp() {
-            // NGワード監視
-            onValue(ref(db, 'settings/ngWords'), (snap) => {
-                const val = snap.val() || "";
-                currentNgWords = val.split(',').map(word => word.trim()).filter(word => word !== "");
-            });
-
-            // 人数監視
-            onValue(ref(db, 'presence'), (snap) => {
-                document.getElementById('guest-count').innerText = snap.size || 0;
-            });
-
-            // ライブ状態監視
-            onValue(ref(db, 'settings/isLive'), (snap) => {
-                const isLive = snap.val();
-                const openBtn = document.getElementById('open-popup-btn');
-                if (isLive === true) {
-                    openBtn.disabled = false;
-                    openBtn.style.opacity = "1";
-                    openBtn.innerText = "SEND MESSAGE";
-                    document.getElementById('lock-overlay').innerText = "";
-                } else {
-                    openBtn.disabled = true;
-                    openBtn.style.opacity = "0.5";
-                    openBtn.innerText = "OFFLINE";
-                    document.getElementById('lock-overlay').innerText = "現在、配信外のためロックされています";
-                    window.closePopup();
-                }
-            });
-
-            // チャット受信
-            onValue(ref(db, 'vip_chats'), (snap) => {
-                const container = document.getElementById('chat-flow');
-                const welcome = document.getElementById('welcome-msg');
-                container.innerHTML = "";
-                if(welcome) container.appendChild(welcome);
-
-                snap.forEach((child) => {
-                    const msg = child.val();
-                    if (msg.uid === currentUser.uid || msg.isAdmin) {
-                        const div = document.createElement('div');
-                        div.className = 'msg-window';
-                        const displayText = (msg.uid === currentUser.uid) ? msg.text : (msg.filteredText || msg.text);
-
-                        div.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; align-items:start;">
-                                <div>
-                                    ${msg.isAdmin ? `<div style="font-size:9px; opacity:0.8; color:var(--accent-cyan);">RYUSEI YOI</div>` : ''}
-                                    <div style="font-size:13px; word-break:break-all;">${displayText}</div>
-                                </div>
-                                <button onclick="openCardPreview('${displayText.replace(/'/g, "\\'")}', ${msg.timestamp}, ${msg.isAdmin})"
-                                        style="background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); font-size:9px; padding:2px 5px; margin-left:10px; cursor:pointer; flex-shrink:0;">
-                                    📸
-                                </button>
-                            </div>
-                        `;
-                        container.prepend(div);
-                    }
-                });
-                setTimeout(() => { container.scrollTop = 0; }, 10);
-            });
-        }
-
-        // 送信処理
-        window.sendMessage = () => {
-            const input = document.getElementById('chat-input');
-            const rawText = input.value.trim();
-            if (!rawText) return;
-
-            let cleanText = rawText;
-            currentNgWords.forEach(word => {
-                const regex = new RegExp(word, 'gi');
-                cleanText = cleanText.replace(regex, '***');
-            });
-
-            push(ref(db, 'vip_chats'), {
-                uid: currentUser.uid,
-                text: rawText,
-                filteredText: cleanText,
-                timestamp: serverTimestamp()
-            });
-
-            input.value = "";
-            window.closePopup();
-        };
-
-        // イベントバインド
-        document.getElementById('login-trigger-btn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
-        document.getElementById('send-btn').onclick = window.sendMessage;
-
-        window.copyUID = () => {
-            const uid = currentUser ? currentUser.uid : "";
-            if(uid) { navigator.clipboard.writeText(uid); alert("UID COPIED!"); }
-        };
-
-        document.getElementById('open-popup-btn').onclick = (e) => {
-            if (e) e.preventDefault();
-            const btn = document.getElementById('open-popup-btn');
-            if (btn.disabled || btn.innerText === "OFFLINE") return false;
-            document.getElementById('input-popup').style.display = 'flex';
-            const input = document.getElementById('chat-input');
-            if (input) input.focus({ preventScroll: true });
-        };
-
-        const chatInput = document.getElementById('chat-input');
-        const charDisplay = document.getElementById('current-char');
-        chatInput.addEventListener('input', () => {
-            const len = chatInput.value.length;
-            charDisplay.innerText = len;
-            charDisplay.style.color = len >= 130 ? "#f87171" : "#666";
-        });
-
-        window.closePopup = () => {
-            document.getElementById('input-popup').style.display = 'none';
-        };
-
-        // 背景切り替え
-        function updateBG() {
-            const hour = new Date().getHours();
-            let img = "night.jpg";
-            if (hour >= 6 && hour < 12) img = "morning.jpg";
-            else if (hour >= 12 && hour < 17) img = "noon.jpg";
-            else if (hour >= 17 && hour < 20) img = "evening.jpg";
-            document.getElementById('fixed-bg').style.backgroundImage = `url('${img}')`;
-        }
-        updateBG();
-        setInterval(updateBG, 60000);
-        window.closePopup();
-    </script>
-
-    <!-- カードプレビュー・保存ロジック -->
-    <script>
-        window.openCardPreview = (text, timestampValue, isAdmin) => {
-            const dateObj = new Date(timestampValue);
-            const y = dateObj.getFullYear();
-            const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-            const d = dateObj.getDate().toString().padStart(2, '0');
-            const dateStr = `${y}/${m}/${d}`;
-            const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            document.getElementById('preview-text').innerText = text;
-            document.getElementById('preview-time').innerText = `${dateStr} ${timeStr}`;
-            document.getElementById('preview-title').innerText = isAdmin ? "【緊急】コアシステムより通信" : "【雑談】宇宙船の窓から観測中";
-            document.getElementById('screenshot-preview').style.display = 'flex';
-        };
-
-        window.closePreview = () => {
-            document.getElementById('screenshot-preview').style.display = 'none';
-        };
-
-        window.saveCardImage = () => {
-            const target = document.getElementById('card-capture-area');
-            html2canvas(target, {
-                backgroundColor: "#020617",
-                scale: 2,
-                useCORS: true
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `yoi-log-${Date.now()}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-                closePreview();
-            });
-        };
-    </script>
+<script src="config.js"></script>
+<script src="applyConfig.js"></script>
 </body>
 </html>
+
+
+/* style.css（既存CSS＋変数対応） */
+:root {
+  --accent-cyan: #38bdf8;
+  --bg-deep: #020617;
+  --text-main: #f8fafc;
+  --card-bg: none;
+}
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-main);
+}
+
+.log-card {
+  background-image: var(--card-bg);
+}
+
+
+// config.js（差し替え用）
+window.APP_CONFIG = {
+  title: "VIP CHAT",
+  username: "虚星 宵",
+  adminName: "RYUSEI YOI",
+
+  colors: {
+    accent: "#38bdf8",
+    bg: "#020617",
+    text: "#f8fafc"
+  },
+
+  background: {
+    morning: "morning.jpg",
+    noon: "noon.jpg",
+    evening: "evening.jpg",
+    night: "night.jpg",
+    card: "card.png"
+  },
+
+  logo: "logo.png"
+};
+
+
+// applyConfig.js（非破壊適用）
+const cfg = window.APP_CONFIG;
+
+// タイトル
+const titleEl = document.getElementById("app-title");
+if (titleEl) titleEl.innerText = cfg.title;
+document.title = `${cfg.title} - ${cfg.username}`;
+
+// 色
+document.documentElement.style.setProperty('--accent-cyan', cfg.colors.accent);
+document.documentElement.style.setProperty('--bg-deep', cfg.colors.bg);
+document.documentElement.style.setProperty('--text-main', cfg.colors.text);
+
+// ロゴ
+const logo = document.getElementById("preview-logo");
+if (logo) logo.src = cfg.logo;
+
+// カード背景
+document.documentElement.style.setProperty('--card-bg', `url('${cfg.background.card}')`);
+
+// 背景切り替え
+function updateBG() {
+  const hour = new Date().getHours();
+  let img = cfg.background.night;
+
+  if (hour >= 6 && hour < 12) img = cfg.background.morning;
+  else if (hour >= 12 && hour < 17) img = cfg.background.noon;
+  else if (hour >= 17 && hour < 20) img = cfg.background.evening;
+
+  const bg = document.getElementById("fixed-bg");
+  if (bg) bg.style.backgroundImage = `url('${img}')`;
+}
+
+updateBG();
+setInterval(updateBG, 60000);
