@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        #source-label {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #00ffcc;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 15px;
+            font-family: 'Segoe UI', sans-serif;
+            border: 1px solid #00ffcc;
+            border-radius: 2px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="source-label">引用元: URLを入力してください</div>
+
+    <script>
+        // URLからドメインを抽出して表示を書き換える関数
+        function updateSource(targetUrl) {
+            const labelElement = document.getElementById('source-label');
+            try {
+                const url = new URL(targetUrl);
+                // hostname（ドメイン）を取得して表示
+                labelElement.innerText = `引用元: ${url.hostname}`;
+            } catch (e) {
+                // 正しいURLじゃない場合は警告を出す
+                labelElement.innerText = "引用元: 有効なURLではありません";
+            }
+        }
+
+        /* 【テスト用】
+           本来はスマホから操作しますが、まずは動作確認のために
+           ブラウザで開いた5秒後に表示が変わるようにしてみます。
+        */
+        setTimeout(() => {
+            updateSource("https://www.amazon.co.jp/example-item");
+        }, 5000);
+    </script>
+</body>
+</html>
