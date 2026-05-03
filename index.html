@@ -436,7 +436,7 @@ textarea#chat-input {
 </header>
 
 <div class="video-container">
-    <iframe src="https://www.youtube.com/embed/LIVE_ID_HERE" allowfullscreen></iframe>
+    <iframe src="https://youtu.be/5RcQej_uqmc?si=_v326vh0J8ioXwyR" allowfullscreen></iframe>
 </div>
 
 <div id="chat-flow">
@@ -654,25 +654,54 @@ window.sendMessage = () => {
     setInterval(updateBG, 60000);
     window.closePopup();
 </script>
-<script>window.openCardPreview = (text, timestampValue, isAdmin) => {
-    // 1. 引数でもらった timestampValue（数字の羅列）を日付形式に直す
+<script>
+   window.openCardPreview = async (text, timestampValue, isAdmin) => {
+    // 1. 日付処理
     const dateObj = new Date(timestampValue);
-    
-    // 2. 年月日を組み立てる
     const y = dateObj.getFullYear();
     const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
     const d = dateObj.getDate().toString().padStart(2, '0');
     const dateStr = `${y}/${m}/${d}`;
-    
-    // 3. 時刻を組み立てる
     const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    
-    // 4. 画面にセット
+
+    // 2. コメントと時刻をセット
     document.getElementById('preview-text').innerText = text;
     document.getElementById('preview-time').innerText = `${dateStr} ${timeStr}`;
-    
-    document.getElementById('preview-title').innerText = isAdmin ? "【緊急】コアシステムより通信" : "【雑談】宇宙船の窓から観測中";
 
+    // 3. iframe から動画IDを取得
+    const iframe = document.querySelector('.video-container iframe');
+    let videoId = null;
+    if (iframe) {
+        const src = iframe.src;
+        const match = src.match(/embed\/([^?]+)/);
+        if (match) videoId = match[1];
+    }
+
+    // 4. デフォルトタイトル（取得失敗時）
+    let finalTitle = isAdmin
+        ? "【緊急】コアシステムより通信"
+        : "【雑談】宇宙船の窓から観測中";
+
+    // 5. YouTubeタイトル取得
+    if (videoId) {
+        try {
+            const apiKey = "AIzaSyBIl530sowA_B-3fE_l2ISNgA0L3Z1UwaI"; // ← APIキーを入れる
+            const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.items && data.items.length > 0) {
+                finalTitle = data.items[0].snippet.title;
+            }
+        } catch (e) {
+            console.warn("YouTubeタイトル取得に失敗:", e);
+        }
+    }
+
+    // 6. タイトルを反映
+    document.getElementById('preview-title').innerText = finalTitle;
+
+    // 7. プレビュー表示
     document.getElementById('screenshot-preview').style.display = 'flex';
 };
 
