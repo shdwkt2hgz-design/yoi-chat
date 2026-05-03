@@ -615,10 +615,8 @@ window.sendMessage = () => {
         if (match) videoId = match[1];
     }
 
-    // 4. デフォルトタイトル（取得失敗時）
-    let finalTitle = isAdmin
-        ? "【緊急】コアシステムより通信"
-        : "【雑談】宇宙船の窓から観測中";
+// 4. デフォルトタイトル（取得失敗時）
+let finalTitle = "（タイトル取得中…）";
 
     // 5. YouTubeタイトル取得
     if (videoId) {
