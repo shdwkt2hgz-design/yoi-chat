@@ -436,7 +436,7 @@ textarea#chat-input {
 </header>
 
 <div class="video-container">
-    <iframe src="https://www.youtube.com/embed/LIVE_ID_HERE" allowfullscreen></iframe>
+    <iframe src="https://youtu.be/5RcQej_uqmc?si=_v326vh0J8ioXwyR" allowfullscreen></iframe>
 </div>
 
 <div id="chat-flow">
@@ -685,7 +685,7 @@ window.sendMessage = () => {
     // 5. YouTubeタイトル取得
     if (videoId) {
         try {
-            const apiKey = "YOUR_YOUTUBE_API_KEY"; // ← APIキーを入れる
+            const apiKey = "AIzaSyBIl530sowA_B-3fE_l2ISNgA0L3Z1UwaI"; // ← APIキーを入れる
             const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
             const res = await fetch(url);
             const data = await res.json();
